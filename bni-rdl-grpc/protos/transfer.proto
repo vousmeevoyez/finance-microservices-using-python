@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+service RdlTransfer{
+    rpc TransferInquiry(TransferInquiryRequest) returns
+    (TransferInquiryResponse) {}
+    rpc Transfer(TransferRequest) returns
+    (TransferResponse) {}
+}
+
+message TransferInquiryRequest{
+    string request_uuid = 1;
+}
+
+message TransferInquiryResponse{
+    string status = 1;
+    string created_at = 2;
+    string transaction_type = 3;
+    string source = 4;
+    string destination = 5;
+    string request_uuid = 6;
+    string response_uuid = 7;
+    int64 amount = 8;
+}
+
+message TransferRequest{
+    string source = 1;
+    string destination = 2;
+    int64 amount = 3;
+    string remark = 4;
+    string bank_code = 5;
+    string inquiry_uuid = 6;
+    string transfer_uuid = 7;
+}
+
+message TransferResponse{
+    string response_uuid = 1;
+}

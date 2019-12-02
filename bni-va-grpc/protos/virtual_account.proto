@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+service VirtualAccount{
+	rpc CreateVa(CreateVaRequest) returns (CreateVaResponse) {}
+	rpc InquiryVa(InquiryVaRequest) returns (InquiryVaResponse) {}
+	rpc UpdateVa(UpdateVaRequest) returns (UpdateVaResponse) {}
+	rpc DisableVa(DisableVaRequest) returns (DisableVaResponse) {}
+}
+
+message CreateVaRequest{
+	string va_type = 1; // credit / debit
+	int32 amount = 3;
+	string name = 4;
+	string phone_number = 5; //08xxxxxxxxxx
+	string expired_at = 7;//yyyy-mm-dd
+}
+
+message CreateVaResponse{
+	string trx_id = 1;
+	string account_no = 2;
+}
+
+message InquiryVaRequest{
+	string va_type = 1; // credit / debit
+	string account_no = 2;
+}
+
+message InquiryVaResponse{
+	string trx_id = 1;
+	string account_no = 2;
+	int32 trx_amount = 3;
+	string name = 4;
+	string phone_number = 5;
+	string email = 6;
+	string created_at = 7;
+	string expired_at = 8;
+	string paid_at = 9;
+	string updated_at = 10;
+	string ref_number = 11;
+	int32 paid_amount = 12;
+	string status = 13;
+	string description = 14;
+	string billing_type = 15;
+}
+
+message UpdateVaRequest{
+	string va_type = 1; // credit / debit
+	string account_no = 2; // used to look up virtual account
+	string trx_id = 3; // optional
+	int32 amount = 4;
+	string name = 5;
+	string expired_at = 6;
+}
+
+message UpdateVaResponse{
+	string va_type = 1; // credit / debit
+	string trx_id = 2;
+}
+
+message DisableVaRequest{
+	string va_type = 1; // credit / debit
+	string account_no = 2;
+}
+
+message DisableVaResponse{
+	string status = 1;
+}

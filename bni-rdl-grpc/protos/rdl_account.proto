@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+service RdlAccount{
+	rpc CreateRdl(CreateRdlRequest) returns (CreateRdlResponse) {}
+	rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse) {}
+}
+
+message CreateRdlRequest{
+	string title = 1; // credit / debit
+	string first_name = 2;
+	string middle_name = 3;
+	string last_name = 4;
+	string npwp_option = 5;
+	string npwp_no = 6;
+	string nationality = 7;
+	string country = 8;
+	string religion = 9;
+	string birth_place = 10;
+	string birth_date = 11;
+	string gender = 12;
+	string is_married = 13;
+	string mother_maiden_name = 14;
+	string job_code = 15;
+	string education = 16;
+	string id_number = 17;
+	string id_issuing_city = 18;
+	string id_expire_date = 19;
+	string address_street = 20;
+	string address_rt_rw_perum = 21;
+	string address_kelurahan = 22;
+	string address_kecamatan = 23;
+	string zip_code = 24;
+	string home_phone_ext = 25;
+	string home_phone = 26;
+	string office_phone_ext = 27;
+	string office_phone = 28;
+	string mobile_phone_ext = 29;
+	string mobile_phone = 30;
+	string fax_ext = 31;
+	string fax = 32;
+	string email = 33;
+	string monthly_income = 34;
+	string branch_opening = 35;
+	string reason = 36;
+	string source_of_fund = 37;
+}
+
+message CreateRdlResponse{
+	string journal_no = 1;
+	string account_no = 2;
+	string uuid = 3;
+}
+
+message HistoryItem{
+    string id = 1;
+    string created_at = 2;
+    int64 amount = 3;
+    int64 balance = 4;
+    string description = 5;
+    string account_no = 6;
+    string transaction_type = 7;
+}
+
+message GetHistoryRequest{
+    string account_no = 1;
+}
+
+message GetHistoryResponse{
+    string start_date = 1;
+    string end_date = 2;
+    int64 start_balance = 3;
+    int64 total_debit = 4;
+    int64 total_credit = 5;
+    int64 end_balance = 6;
+    repeated HistoryItem details = 7;
+}

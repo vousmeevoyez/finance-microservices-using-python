@@ -1,0 +1,132 @@
+# Docker Compose Production Environments 
+version : '3'
+services:
+        flask:
+                build:
+                        context: .
+                        dockerfile: dockerfiles/flask/Dockerfile
+                image: lending-engine-services
+                entrypoint: ./scripts/init.sh
+                env_file: .env
+                depends_on:
+                - rabbitmq
+                ports:
+                - 11000:5000
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        investor-worker:
+                image: lending-engine-services
+                entrypoint: make investor-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        utility-worker:
+                image: lending-engine-services
+                entrypoint: make utility-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        transaction-worker:
+                image: lending-engine-services
+                entrypoint: make transaction-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        investment-worker:
+                image: lending-engine-services
+                entrypoint: make investment-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        va-worker:
+                image: lending-engine-services
+                entrypoint: make va-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        scheduler:
+                image: lending-engine-services
+                entrypoint: make beat
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        periodic-worker:
+                image: lending-engine-services
+                entrypoint: make periodic-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        va-worker:
+                image: lending-engine-services
+                entrypoint: make va-worker
+                env_file: .env
+                depends_on:
+                - flask
+                - rabbitmq
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        rabbitmq:
+                env_file: .env
+                image: rabbitmq:3-management
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        notif-grpc:
+                image: notif-grpc
+                env_file: .env
+                entrypoint: python manage.py run
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+        rdl-grpc:
+                image: bni-rdl-grpc
+                env_file: .env
+                entrypoint: python manage.py run
+                restart: unless-stopped
+                networks:
+                - lending-engine-net
+
+networks:
+  lending-engine-net:
+    external: true

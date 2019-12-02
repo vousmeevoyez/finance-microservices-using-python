@@ -1,0 +1,27 @@
+# Docker Compose Production Environments 
+version : '3'
+services:
+        va-grpc:
+                build:
+                  context: .
+                  dockerfile: dockerfiles/grpc/Dockerfile
+                image: bni-va-grpc
+                env_file: .env
+                entrypoint: python manage.py
+                restart: unless-stopped
+                networks:
+                - va-net
+                - lending-engine-net
+
+        mongo:
+                build:
+                  context: dockerfiles/mongo/
+                image: mongo
+                restart: unless-stopped
+                networks:
+                - va-net
+
+networks:
+  va-net:
+  lending-engine-net:
+    external: true

@@ -1,0 +1,62 @@
+# Docker Compose Production Environments 
+version : '3'
+services:
+        transaction-flask:
+                build:
+                  context: .
+                  dockerfile: dockerfiles/flask/Dockerfile
+                image: transaction-engine-services
+                env_file: .env
+                entrypoint: make run
+                restart: unless-stopped
+                ports:
+                - 12000:5000
+                networks:
+                - transaction-net
+                - lending-engine-net
+
+        transaction-worker:
+                image: transaction-engine-services
+                env_file: .env
+                entrypoint: make transaction-worker
+                restart: unless-stopped
+                networks:
+                - transaction-net
+
+        transaction-utils-worker:
+                image: transaction-engine-services
+                env_file: .env
+                entrypoint: make utility-worker
+                restart: unless-stopped
+                networks:
+                - transaction-net
+                - lending-engine-net
+
+        external-worker:
+                image: transaction-engine-services
+                env_file: .env
+                entrypoint: make external-worker
+                restart: unless-stopped
+                networks:
+                - transaction-net
+                - lending-engine-net
+
+        trx-rabbitmq:
+                env_file: .env
+                image: rabbitmq:3-management
+                restart: unless-stopped
+                networks:
+                - transaction-net
+
+        opg-grpc:
+                image: bni-opg-grpc
+                env_file: .env
+                entrypoint: python manage.py run
+                restart: unless-stopped
+                networks:
+                - transaction-net
+
+networks:
+  transaction-net:
+  lending-engine-net:
+    external: true
