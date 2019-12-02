@@ -4,7 +4,6 @@
     This is flask application entry
 """
 import os
-import unittest
 
 from flask_script import Manager, Shell
 
@@ -31,16 +30,6 @@ def run():
 
 
 @manager.command
-def test():
-    """ function to run unittest"""
-    tests = unittest.TestLoader().discover('app/tests', pattern='test*.py')
-    result = unittest.TextTestRunner(verbosity=2).run(tests)
-    if result.wasSuccessful():
-        return 0
-    return 1
-
-
-@manager.command
 def init():
     """ create init function here """
     escrow_wallet = Wallet.find_one({"label": "ESCROW"})
@@ -60,11 +49,6 @@ def init():
         wallet = Wallet(bank_accounts=bank_accounts)
         wallet.label = "PROFIT"
         wallet.commit()
-
-
-def make_shell_context():
-    """ create shell context here"""
-    pass
 
 
 if __name__ == "__main__":
