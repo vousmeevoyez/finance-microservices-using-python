@@ -15,6 +15,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.rest
 
         investor-worker:
                 image: lending-engine-services
@@ -26,6 +31,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.investor-worker
 
         utility-worker:
                 image: lending-engine-services
@@ -37,6 +47,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.utility-worker
 
         transaction-worker:
                 image: lending-engine-services
@@ -48,6 +63,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.utility-worker
 
         investment-worker:
                 image: lending-engine-services
@@ -59,6 +79,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.investment-worker
 
         va-worker:
                 image: lending-engine-services
@@ -70,6 +95,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.va-worker
 
         scheduler:
                 image: lending-engine-services
@@ -81,6 +111,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.scheduler
 
         periodic-worker:
                 image: lending-engine-services
@@ -92,17 +127,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
-
-        va-worker:
-                image: lending-engine-services
-                entrypoint: make va-worker
-                env_file: .env
-                depends_on:
-                - flask
-                - rabbitmq
-                restart: unless-stopped
-                networks:
-                - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: lending-engine.periodic-worker
 
         rabbitmq:
                 env_file: .env
@@ -118,6 +147,12 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: notif.grpc
+
 
         rdl-grpc:
                 image: bni-rdl-grpc
@@ -126,6 +161,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "fluentd"
+                  options:
+                    fluentd-address: dev.modana.id:24224
+                    tag: bni-rdl.grpc
 
 networks:
   lending-engine-net:
