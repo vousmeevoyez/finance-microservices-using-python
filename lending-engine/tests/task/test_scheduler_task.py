@@ -1,3 +1,4 @@
+import pytz
 from datetime import date, datetime, timedelta
 from freezegun import freeze_time
 from task.scheduler.tasks import check_grace_period, SchedulerTask
@@ -5,6 +6,8 @@ from task.scheduler.tasks import check_grace_period, SchedulerTask
 from app.api.models.investment import Investment
 from app.api.models.loan_request import LoanRequest
 
+
+TIMEZONE = pytz.timezone("Asia/Jakarta")
 
 @freeze_time("2019-11-25")
 def test_check_grace_period_on_time():
@@ -238,11 +241,149 @@ def test_calculate_late_fees_case3(setup_investment, setup_investor, make_loan_r
 
 
 @freeze_time("2019-12-02")
-def test_remind_before_due_dates(make_loan_request):
-    loan_request = make_loan_request(status="DISBURSED")
-    loan_request.due_date = date.today()
+def test_auto_cancel_verifying_loan(make_loan_request):
+    """ simulate loan that has been created in the morning but not approved so
+    it should be cancelled on the same day """
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=9, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    loan_request = make_loan_request(status="VERIFYING")
+    loan_request.ca = utc_time
     loan_request.commit()
 
     # setup some record that have duedate of 25
-    loan_request_ids = SchedulerTask().remind_before_due_dates()
-    print(loan_request_ids)
+    SchedulerTask().auto_cancel_verifying_loan()
+    loan_request = LoanRequest.find_one({"id": loan_request.id})
+    assert loan_request.status == "CANCELLED"
+
+
+@freeze_time("2019-12-02")
+def test_auto_cancel_verifying_loan2(make_loan_request):
+    """ simulate loan that has been created in the afternoon but not approved
+    so it should be not cancelled today but next day"""
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=13, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    loan_request = make_loan_request(status="VERIFYING")
+    loan_request.ca = utc_time
+    loan_request.commit()
+
+    # setup some record that have duedate of 25
+    SchedulerTask().auto_cancel_verifying_loan()
+    loan_request = LoanRequest.find_one({"id": loan_request.id})
+    assert loan_request.status == "VERIFYING"
+
+
+@freeze_time("2019-12-03")
+def test_auto_cancel_verifying_loan3(make_loan_request):
+    """ simulate loan that has been created in the afternoon yesterday but not
+    approved so it should be cancelled h+1"""
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=13, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    loan_request = make_loan_request(status="VERIFYING")
+    loan_request.ca = utc_time
+    loan_request.commit()
+
+    # setup some record that have duedate of 25
+    SchedulerTask().auto_cancel_verifying_loan()
+    loan_request = LoanRequest.find_one({"id": loan_request.id})
+    assert loan_request.status == "CANCELLED"
+
+
+@freeze_time("2019-12-02")
+def test_auto_cancel_verifying_loan4(make_loan_request):
+    """ simulate loan that has been created in the morning and afternoon the
+    one should be updated is the one in the morning"""
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=7, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    morning_loan = make_loan_request(status="VERIFYING")
+    morning_loan.ca = utc_time
+    morning_loan.commit()
+
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=14, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    afternoon_loan = make_loan_request(status="VERIFYING")
+    afternoon_loan.ca = utc_time
+    afternoon_loan.commit()
+
+    SchedulerTask().auto_cancel_verifying_loan()
+    morning_loan = LoanRequest.find_one({"id": morning_loan.id})
+    assert morning_loan.status == "CANCELLED"
+
+    SchedulerTask().auto_cancel_verifying_loan()
+    afternoon_loan = LoanRequest.find_one({"id": afternoon_loan.id})
+    assert afternoon_loan.status == "VERIFYING"
+
+
+@freeze_time("2019-12-02")
+def test_auto_cancel_approved_loan(make_loan_request):
+    """ simulate loan that has been approved in the morning but not disbursed so
+    it should be cancelled on the same day """
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=9, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    loan_request = make_loan_request(status="APPROVED")
+    approvals = [{
+        "status": "APPROVED",
+        "ca": utc_time
+    }]
+    loan_request.approvals = approvals
+    loan_request.commit()
+
+    # setup some record that have duedate of 25
+    SchedulerTask().auto_cancel_approved_loan()
+    loan_request = LoanRequest.find_one({"id": loan_request.id})
+    assert loan_request.status == "CANCELLED"
+
+
+@freeze_time("2019-12-02")
+def test_auto_cancel_approved_loan2(make_loan_request):
+    """ simulate loan that has been approved in the afternoon but not disbursed so
+    it should be cancelled on the next day """
+    local_time = TIMEZONE.localize(
+        datetime(year=2019, month=12, day=2, hour=13, minute=10)
+    )
+    utc_time = local_time.astimezone(pytz.UTC)
+    loan_request = make_loan_request(status="APPROVED")
+    approvals = [{
+        "status": "APPROVED",
+        "ca": utc_time
+    }]
+    loan_request.approvals = approvals
+    loan_request.commit()
+
+    # setup some record that have duedate of 25
+    SchedulerTask().auto_cancel_approved_loan()
+    loan_request = LoanRequest.find_one({"id": loan_request.id})
+    assert loan_request.status == "APPROVED"
+
+
+@freeze_time("2019-12-02")
+def test_reminder_due_date(make_loan_request):
+    """ simulate auto reminder before due date in the morning """
+    loan_request = make_loan_request(status="DISBURSED")
+    loan_request.due_date = date(year=2019, month=12, day=2)
+    loan_request.commit()
+
+    # setup some record that have duedate of 25
+    SchedulerTask().remind_before_due_dates()
+
+
+@freeze_time("2019-12-02")
+def test_reminder_after_due_date(make_loan_request):
+    """ simulate auto reminder after due date in the evening """
+    loan_request = make_loan_request(status="DISBURSED")
+    loan_request.due_date = date(year=2019, month=12, day=2)
+    loan_request.commit()
+
+    # setup some record that have duedate of 25
+    SchedulerTask().remind_after_due_dates()

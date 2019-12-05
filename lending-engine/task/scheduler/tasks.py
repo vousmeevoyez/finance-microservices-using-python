@@ -1,4 +1,5 @@
 import random
+import pytz
 from datetime import datetime, date, timedelta
 
 from bson.decimal128 import Decimal128
@@ -14,11 +15,18 @@ from app.api import (
     sentry
 )
 
+from app.api.models.user import User
+from app.api.models.borrower import Borrower
 from app.api.models.investment import Investment
 from app.api.models.product import Product
 from app.api.models.loan_request import LoanRequest
 
+from app.api.lib.helper import send_notif
+
 from app.config.worker import WORKER, RPC
+
+
+TIMEZONE = pytz.timezone("Asia/Jakarta")
 
 
 def backoff(attempts):
@@ -43,6 +51,20 @@ def calculate_rate(type_, amount):
     if type_ == "PERCENT":
         rate = amount / 100
     return rate
+
+
+def send_borrower_notif(borrower_id, notif_type):
+    """ wrapper function to help borrower notif """
+    borrower = Borrower.find_one({"id": borrower_id})
+    user = User.find_one({"id": borrower.user_id})
+
+    email_notif, in_app_notif = send_notif(
+        recipient=borrower.email,
+        user_id=borrower.user_id,
+        notif_type=notif_type,
+        platform="mobile",
+        device_token=user.device_id
+    )
 
 
 def calculate_late_fee(type_, rate, loan_amount, overdue):
@@ -283,26 +305,40 @@ class SchedulerTask(celery.Task):
     )
     def remind_before_due_dates(self):
         """ check all due dates and send notification """
-        # we check is there any loan request have due date today
-        morning = datetime.utcnow().replace(hour=0, minute=0)
-        night = datetime.utcnow().replace(hour=23, minute=59)
+        # we check is there any loan request that has been disbursed and have
+        # due date today
+        morning = datetime.now().replace(
+            tzinfo=TIMEZONE,
+            hour=0,
+            minute=0
+        )
 
-        loan_requests = LoanRequest.get_with_product_info(
+        night = datetime.now().replace(
+            tzinfo=TIMEZONE,
+            hour=23,
+            minute=59,
+            second=59
+        )
+
+        loan_requests = list(LoanRequest.collection.find(
             {
                 "st": "DISBURSED",
                 "dd": {
                     "$gte": morning,
-                    "$lt": night
+                    "$lte": night
                 }
             }
-        )
+        ))
 
         current_app.logger.info(
-            "No of due dates Loan : {}".format(len(loan_requests))
+            "No of loan have due dates: {}".format(
+                len(loan_requests)
+            )
         )
 
-        loan_request_ids = [{str(lr["_id"]), "BEFORE_DUE_DATE"} for lr in loan_requests]
-        return loan_request_ids
+        for loan_request in loan_requests:
+            send_borrower_notif(loan_request["borrower_id"],
+                                "REMINDER_BEFORE_DUEDATE")
 
     @celery.task(
         bind=True,
@@ -312,24 +348,127 @@ class SchedulerTask(celery.Task):
         acks_late=WORKER["ACKS_LATE"],
     )
     def remind_after_due_dates(self):
-        """ check all due dates and send notification """
+        """ check all loan that not been paid until certain time """
         # we check is there any loan request have due date today
-        morning = datetime.utcnow().replace(hour=0, minute=0)
-        night = datetime.utcnow().replace(hour=23, minute=59)
+        morning = datetime.now().replace(
+            tzinfo=TIMEZONE,
+            hour=0,
+            minute=0
+        )
 
-        loan_requests = LoanRequest.get_with_product_info(
+        night = datetime.now().replace(
+            tzinfo=TIMEZONE,
+            hour=23,
+            minute=59,
+            second=59
+        )
+
+        loan_requests = list(LoanRequest.collection.find(
             {
                 "st": "DISBURSED",
                 "dd": {
                     "$gte": morning,
-                    "$lt": night
+                    "$lte": night
                 }
             }
-        )
+        ))
 
         current_app.logger.info(
-            "No of due dates Loan : {}".format(len(loan_requests))
+            "No of loan that not been paid in due dates: {}".format(
+                len(loan_requests)
+            )
         )
 
-        loan_request_ids = [{str(lr["_id"]), "AFTER_DUE_DATE"} for lr in loan_requests]
-        return loan_request_ids
+        for loan_request in loan_requests:
+            send_borrower_notif(loan_request["borrower_id"],
+                                "REMINDER_AFTER_DUEDATE")
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def auto_cancel_verifying_loan(self):
+        """ auto cancel loan that not been approved after 24 hour """
+        # we check is there any loan request have due date today
+        cut_off = datetime.now().replace(tzinfo=TIMEZONE, hour=12, minute=0)
+
+        last_cut_off = cut_off - timedelta(days=2)
+
+        loan_requests = list(LoanRequest.collection.find(
+            {
+                "st": "VERIFYING",
+                "ca": {
+                    "$gte": last_cut_off,
+                    "$lte": cut_off
+                }
+            }
+        ))
+
+        current_app.logger.info(
+            "No of cancelled requested Loan: {}".format(
+                len(loan_requests)
+            )
+        )
+
+        for loan_request in loan_requests:
+            LoanRequest.collection.update_one(
+                {"_id": loan_request["_id"]},
+                {"$set": {
+                    "st": "CANCELLED"
+                }},
+            )
+
+            send_borrower_notif(loan_request["borrower_id"],
+                                "LOAN_REQUEST_CANCEL")
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def auto_cancel_approved_loan(self):
+        """ auto cancel loan that not been disbursed after 24 hour """
+        # we check is there any loan request have due date today
+        cut_off = datetime.now().replace(tzinfo=TIMEZONE, hour=12, minute=0)
+
+        last_cut_off = cut_off - timedelta(days=2)
+
+        loan_requests = list(LoanRequest.collection.aggregate([
+            {
+                "$match": {
+                    "app": {
+                        "$elemMatch": {
+                            "$and": [
+                                {"st": "APPROVED"},
+                                {"ca": {
+                                    "$gte": last_cut_off,
+                                    "$lte": cut_off
+                                }}
+                            ]
+                        }
+                    }
+                }
+            }
+        ]))
+
+        current_app.logger.info(
+            "No of approved requested Loan: {}".format(
+                len(loan_requests)
+            )
+        )
+
+        for loan_request in loan_requests:
+            LoanRequest.collection.update_one(
+                {"_id": loan_request["_id"]},
+                {"$set": {
+                    "st": "CANCELLED"
+                }},
+            )
+
+            send_borrower_notif(loan_request["borrower_id"],
+                                "LOAN_REQUEST_CANCEL")
