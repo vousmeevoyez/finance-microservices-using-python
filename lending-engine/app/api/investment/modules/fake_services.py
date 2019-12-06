@@ -211,6 +211,9 @@ def create_random_loan_request():
     tnc = current_app.db.lender_files.find_one({
         "ft": "terms",
     })
+    bank = current_app.db.lender_banks.find_one({
+        "bna": "PT BANK NEGARA INDONESIA 1946 (Persero) Tbk",
+    })
 
     data = {
         "overdue": 0,
@@ -242,13 +245,17 @@ def create_random_loan_request():
             "is_agreed": True,
             "file_id": tnc["_id"]
         },
+        "modanaku": {
+            "wallet_id": "31ec22c4-dcf4-4679-a358-faa3ab832fda"
+        },
         "bank_accounts": [
             {
-                "account_no": "9889909682572657",
+                "account_no": "9889909694513183",
                 "account_type": "VIRTUAL_ACCOUNT",
                 "bank_name": "BNI",
                 "account_name": "EMPLOYEE VA",
-                "label": "MODANAKU"
+                "label": "MODANAKU",
+                "bank_id": bank["_id"]
             }
         ],
         "approvals": [{
