@@ -51,8 +51,7 @@ class DevelopmentConfig(Config):
 
     CELERY_RESULT_BACKEND = "mongodb"
     CELERY_MONGODB_BACKEND_SETTINGS = {
-        "host": Config.MONGO_PATH + "/",
-        "replicaSet": Config.MONGO_REPLICA_SET,
+        "host": MONGO_URI,
         "database": Config.MONGO_DBNAME,
     }
 
@@ -101,7 +100,7 @@ class ProductionConfig(Config):
 
     CELERY_RESULT_BACKEND = "mongodb"
     CELERY_MONGODB_BACKEND_SETTINGS = {
-        "host": Config.MONGO_PATH + "/" + "?replicaSet=" + Config.MONGO_REPLICA_SET,
+        "host": MONGO_URI,
         "database": Config.MONGO_DBNAME,
     }
 
