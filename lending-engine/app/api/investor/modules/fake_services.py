@@ -49,7 +49,6 @@ def create_random_investor():
         fees.append({
             "product_id": product["_id"],
             "late_fee": interest["lf"],
-            "late_fee_type": interest["lft"],
             "upfront_fee": interest["uf"],
             "upfront_fee_type": interest["ut"],
             "penalty_fee": interest["pf"],

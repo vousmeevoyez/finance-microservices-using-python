@@ -210,8 +210,8 @@ def create_random_loan_request():
     product = current_app.db.lender_products.find_one({"pn": "Mocepat"})
     tnc = current_app.db.lender_files.find_one({
         "ft": "terms",
-        "id": False
     })
+
     data = {
         "overdue": 0,
         "payment_state_status": "LANCAR",
