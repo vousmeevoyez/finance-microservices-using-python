@@ -3,11 +3,13 @@
     _______________
     Handle logic to models or external party API
 """
+from collections import Counter
 from bson import ObjectId
 
-from app.api.lib.core.exceptions import BaseError
 from app.api.models.transaction import Transaction
 from app.api.transactions.factories.helper import process_transaction
+
+from app.api.lib.core.exceptions import BaseError
 
 
 class ServicesError(BaseError):
@@ -38,6 +40,52 @@ def single_transaction(
     return trx
 
 
+def aggregate_by_destination_id(transactions):
+    """ aggregate transactions by its destination so we know how much amount we
+    should bulk transfer to destination """
+    counter = Counter()
+    for trx in transactions:
+        counter[
+            trx["source_id"],
+            trx["source_type"],
+            trx["destination_id"],
+            trx["destination_type"],
+            trx["transaction_type"],
+            trx["wallet_id"]
+        ] += trx['amount']
+
+    # after we got the aggregated result we revert back the result into the
+    # original state
+    dict_count = dict(counter)
+    result = [{
+        "source_id": k[0],
+        "source_type": k[1],
+        "destination_id": k[2],
+        "destination_type": k[3],
+        "transaction_type": k[4],
+        "wallet_id": k[5],
+        "amount": v
+    } for k, v in dict_count.items()]
+    return result
+
+
+def bulk_transaction(
+        transactions
+):
+    # we group transaction based on its destination so let say if there 10
+    # transaction have source a and destination b we aggregate it into 1
+    # transaction a to b with total amount of 10 transaction
+
+    # first we aggregate transaction so we know total amount that we have to
+    # transfer for certain destination id
+    aggregated_transactions = aggregate_by_destination_id(transactions)
+    result = []
+    for transaction in aggregated_transactions:
+        trx_id = single_transaction(**transaction)
+        result.append(str(trx_id))
+    return result
+
+
 def refund(transaction_id):
     """ transaction refund """
     # first need to check status of each transaction
@@ -62,6 +110,7 @@ def refund(transaction_id):
         refunded_amount = int(-transaction.amount)
         refund_transaction_type = "CREDIT_REFUND"
 
+        # if its debit then we should revert - to +
         if transaction.payment.payment_type == "DEBIT":
             refunded_amount = abs(transaction.amount)
             refund_transaction_type = "DEBIT_REFUND"

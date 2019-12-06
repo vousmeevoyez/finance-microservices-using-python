@@ -14,14 +14,16 @@ services:
                 - lending-engine-net
 
         mongo:
-                build:
-                  context: dockerfiles/mongo/
-                image: mongo
+                image: mongo:latest
                 restart: unless-stopped
                 networks:
                 - va-net
-
+                volumes:
+                - "db_volume:/data/db"
 networks:
   va-net:
   lending-engine-net:
     external: true
+
+volumes:
+  db_volume:

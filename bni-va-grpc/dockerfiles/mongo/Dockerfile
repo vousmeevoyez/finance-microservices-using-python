@@ -1,2 +1,2 @@
 from mongo:latest
-copy init.js /docker-entrypoint-initdb.d/
+copy mongo-init.js /docker-entrypoint-initdb.d/

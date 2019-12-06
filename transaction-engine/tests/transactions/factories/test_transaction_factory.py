@@ -54,7 +54,7 @@ def test_process_rdl_to_investment_va(
     assert result.payment.provider == "BNI_RDL"
     assert result.payment.bank_code == "009"
     assert result.payment.source == "01231231312"  # RDL ACCOUNT
-    assert result.payment.destination == "01231231312123123"  # INVESTMENT VA
+    assert result.payment.destination == "9889909612123123"  # INVESTMENT VA
 
     # should be triggered via callback
     escrow_trx_id = process_transaction(
@@ -76,7 +76,7 @@ def test_process_rdl_to_investment_va(
     assert result.payment.bank_code == "009"
     assert result.payment.provider == "BNI_VA"
     assert result.payment.source == "01231231312"  # FROM RDL ACCOUNT
-    assert result.payment.destination == "01231231312123123"  # INVESTMENT VA
+    assert result.payment.destination == "9889909612123123"  # INVESTMENT VA
 
 
 def test_process_investment_to_profit(
@@ -128,14 +128,15 @@ def test_process_investment_to_profit(
 
 
 def test_process_escrow_to_modanaku(
-    setup_flask_app, setup_escrow_wallet, setup_loan_request
+    setup_flask_app, setup_escrow_wallet, setup_investment_with_loan
 ):
+    investment, loan_request = setup_investment_with_loan
 
     escrow_trx_id = process_transaction(
         wallet_id=setup_escrow_wallet.id,
         source_id=setup_escrow_wallet.id,
         source_type="ESCROW",
-        destination_id=setup_loan_request.id,
+        destination_id=loan_request.id,
         destination_type="MODANAKU",
         amount=-1000000,
         transaction_type="DISBURSE",
@@ -150,4 +151,4 @@ def test_process_escrow_to_modanaku(
     assert result.payment.provider == "BNI_OPG"
     assert result.payment.bank_code == "009"
     assert result.payment.source == "111222334"  # ESCROW MASTER ACCOUNT
-    assert result.payment.destination == "9888888128381123"  # PROFIT MASTER
+    assert result.payment.destination == "9889909600023123"  # PROFIT MASTER

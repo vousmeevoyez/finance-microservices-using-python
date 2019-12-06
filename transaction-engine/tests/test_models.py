@@ -37,30 +37,32 @@ def test_set_collection():
     assert result == LoanRequest
 
 
-def test_get_record(setup_investor, setup_investment, setup_loan_request):
+def test_get_record(setup_investor, setup_investment_with_loan):
     """ test method based on model, and model primary key, we retrieve bank
     account for that particular models """
+    investment, loan_request = setup_investment_with_loan
+
     result = PaymentEmbed._get_record(Investor, setup_investor.id, "INVESTOR")
     assert result["bn"]
     assert result["ano"]
     assert result["at"]
     assert result["an"]
 
-    result = PaymentEmbed._get_record(Investment, setup_investment.id, "INVESTMENT")
+    result = PaymentEmbed._get_record(Investment, investment.id, "INVESTMENT")
     assert result["bn"]
     assert result["ano"]
     assert result["at"]
     assert result["an"]
 
     # get some loan request id from investment
-    result = PaymentEmbed._get_record(LoanRequest, setup_loan_request.id, "MODANAKU")
+    result = PaymentEmbed._get_record(LoanRequest, loan_request.id, "MODANAKU")
     assert result["bn"]
     assert result["ano"]
     assert result["at"]
     assert result["an"]
 
     # get some loan request id from investment
-    result = PaymentEmbed._get_record(LoanRequest, setup_loan_request.id,
+    result = PaymentEmbed._get_record(LoanRequest, loan_request.id,
                                       "REPAYMENT")
     assert result["bn"]
     assert result["ano"]
@@ -177,16 +179,17 @@ def test_investment_to_escrow(
 
 
 def test_escrow_to_modanaku(setup_flask_app, setup_escrow_wallet,
-                            setup_loan_request):
+                            setup_investment_with_loan):
     """
         test disburse flow from escrow to modanaku va
     """
+    investment, loan_request = setup_investment_with_loan
 
     transaction = Transaction(
         wallet_id=setup_escrow_wallet.id,
         source_id=setup_escrow_wallet.id,
         source_type="ESCROW",
-        destination_id=setup_loan_request.id,
+        destination_id=loan_request.id,
         destination_type="MODANAKU",
         amount=-1000000,
         transaction_type="DISBURSE",
@@ -200,16 +203,17 @@ def test_escrow_to_modanaku(setup_flask_app, setup_escrow_wallet,
 
 
 def test_repayment_to_escrow(setup_flask_app, setup_escrow_wallet,
-                             setup_loan_request):
+                             setup_investment_with_loan):
     """
         test disburse flow from escrow to modanaku va
     """
+    investment, loan_request = setup_investment_with_loan
 
     transaction = Transaction(
         wallet_id=setup_escrow_wallet.id,
-        source_id=setup_loan_request.id,
+        source_id=loan_request.id,
         source_type="MODANAKU",
-        destination_id=setup_loan_request.id,
+        destination_id=loan_request.id,
         destination_type="REPAYMENT",
         amount=1000000,
         transaction_type="RECEIVE_REPAYMENT",
