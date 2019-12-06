@@ -174,3 +174,56 @@ class LoanRequest(BaseBankDocument):
             return list(loan_request)[0].dump()
         except IndexError:
             raise LoanRequestNotFound
+
+    @staticmethod
+    def get_with_product_info(matcher):
+        loan_requests = LoanRequest.collection.aggregate([
+            {
+                "$match": matcher
+            },
+            {
+                "$lookup": {
+                    "from": "lender_products",
+                    "localField": "product_id",
+                    "foreignField": "_id",
+                    "as": "product",
+                }
+            },
+            {
+                "$unwind": "$product"
+            }
+        ])
+        loan_requests = list(loan_requests)
+        return loan_requests
+
+    @staticmethod
+    def get_with_product_investor(matcher):
+        loan_requests = LoanRequest.collection.aggregate([
+            {
+                "$match": matcher
+            },
+            {
+                "$lookup": {
+                    "from": "lender_products",
+                    "localField": "product_id",
+                    "foreignField": "_id",
+                    "as": "product",
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "lender_investors",
+                    "localField": "investor_id",
+                    "foreignField": "_id",
+                    "as": "investor",
+                }
+            },
+            {
+                "$unwind": "$product"
+            },
+            {
+                "$unwind": "$investor"
+            }
+        ])
+        loan_requests = list(loan_requests)
+        return loan_requests

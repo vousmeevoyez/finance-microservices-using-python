@@ -31,7 +31,7 @@ class User(BaseDocument):
     otp_uuid = StrField(attribute="ou")
     email_code = StrField(attribute="emc")
     is_email_verified = StrField(attribute="iev")
-    user_virtual_account = EmbeddedField(UserVaEmbed, attribute="uVa")
+    user_virtual_account = EmbeddedField(UserVaEmbed, attribute="uVA")
     next_payment_date = StrField(attribute="npd")
     
     class Meta:

@@ -7,7 +7,7 @@ from app.api import ma
 
 
 class TrxSchema(ma.Schema):
-    """ this is class schema for User"""
+    """ this is class schema for transaction """
 
     wallet_id = fields.Str(required=True)
     source_id = fields.Str(required=True)
@@ -17,3 +17,8 @@ class TrxSchema(ma.Schema):
     amount = fields.Float(required=True)
     transaction_type = fields.Str(required=True)
     reference_no = fields.Str()
+
+
+class BulkTrxSchema(ma.Schema):
+    """ this is class for bulk create transaction """
+    transactions = fields.Nested(TrxSchema, many=True)

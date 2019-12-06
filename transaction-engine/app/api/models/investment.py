@@ -33,6 +33,8 @@ class LoanFeeEmbed(BaseEmbeddedDocument):
     name = StrField(attribute="na")
     investor_fee = DecimalField(attribute="if")
     profit_fee = DecimalField(attribute="af")
+    late_fee = DecimalField(attribute="lf", default=0)
+    late_fee_date = DateTimeField(attribute="lfd")
 
 
 @instance.register
@@ -88,6 +90,40 @@ class Investment(BaseBankDocument):
             return list(investment)[0].dump()
         except IndexError:
             raise InvestmentNotFound
+
+    @staticmethod
+    def extract_investment_loan(_id):
+        result = Investment.collection.aggregate(
+            [
+                {
+                    "$match": {
+                        "lr": {
+                            "$elemMatch": {"$and": [{
+                                "loanRequest_id": ObjectId(_id)
+                            }]}
+                        },
+                    }
+                },
+                {
+                    "$project": {
+                        "lr": {
+                            "$filter": {
+                                "input": "$lr",
+                                "as": "lr",
+                                "cond": {
+                                    "$and": [{
+                                        "$eq": ["$$lr.loanRequest_id", ObjectId(_id)]
+                                    }]
+                                },
+                            }
+                        }
+                    }
+                },
+            ]
+        )
+        # get the very first array
+        loan_requests = list(result)[0]
+        return loan_requests["lr"][0]
 
     @post_dump
     def custom_dump(self, data):

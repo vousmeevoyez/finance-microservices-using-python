@@ -20,3 +20,9 @@ class TransactionRequestSchema:
     parser.add_argument("transaction_type", type=str, required=True)
     parser.add_argument("amount", type=int, required=True)
     parser.add_argument("reference_no", type=str)
+
+
+class BulkTransactionRequestSchema:
+    """Define all mandatory argument for bulk transaction"""
+    parser = reqparse.RequestParser()
+    parser.add_argument("transactions", type=dict, action="append")

@@ -90,6 +90,7 @@ class PaymentEmbed(EmbeddedDocument):
             bank_account = collection().get_bank_account_using_id_label(
                 collection_id, type_
             )
+
         bank = Bank.find_one({"id": bank_account["bid"]})
         # add bank code here
         bank_account["bank_code"] = bank.interbank_code
