@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from freezegun import freeze_time
 from task.scheduler.tasks import check_grace_period, SchedulerTask
 
+from app.api.models.batch import Schedule, TransactionQueue
 from app.api.models.investment import Investment
 from app.api.models.loan_request import LoanRequest
 
@@ -387,3 +388,25 @@ def test_reminder_after_due_date(make_loan_request):
 
     # setup some record that have duedate of 25
     SchedulerTask().remind_after_due_dates()
+
+
+@freeze_time("06:00:59")  # in utc is 13.00
+def test_execute_transaction_batch(make_transaction_queue):
+    """ simulate executing schedules """
+    # create a transaction queue that already queued 2 hours ago
+    queue_at = datetime.utcnow() - timedelta(hours=2)
+    queue = make_transaction_queue("UPFRONT_AFTERNOON", queue_at)
+
+    # setup some record that have duedate of 25
+    SchedulerTask().execute_transaction_batch()
+
+
+@freeze_time("12:00:59")  # in utc is 13.00
+def test_execute_transaction_batch2(make_transaction_queue):
+    """ simulate executing schedules """
+    # create a transaction queue that already queued 2 hours ago
+    queue_at = datetime.utcnow() - timedelta(hours=2)
+    queue = make_transaction_queue("UPFRONT_NIGHT", queue_at)
+
+    # setup some record that have duedate of 25
+    SchedulerTask().execute_transaction_batch()

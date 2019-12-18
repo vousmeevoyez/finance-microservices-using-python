@@ -13,13 +13,10 @@ from app.api import (
     sentry
 )
 from app.api.lib.helper import str_to_class
+from app.api.lib.utils import backoff
+
 from app.api.models.base import StatusEmbed
 from app.config.worker import WORKER, HTTP
-
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
 
 
 class TransactionTask(celery.Task):
@@ -91,6 +88,43 @@ class TransactionTask(celery.Task):
         task_time_limit=WORKER["SOFT_LIMIT"],
         acks_late=WORKER["ACKS_LATE"],
     )
+    def send_bulk_transaction(self, transactions, update_records):
+        """ execute HTTP Api call to transaction engine where the bulk
+        transaction created """
+
+        # prepare HTTP Request to Transaction Engine
+        base_url = HTTP["TRANSACTION_ENGINE"]["BASE_URL"]
+        endpoint = HTTP["TRANSACTION_ENGINE"]["API"]["BULK_CREATE"]
+        url = base_url + endpoint
+
+        payload = {
+            "transactions": transactions
+        }
+
+        try:
+            current_app.logger.info("Send to Transaction engine ..")
+            current_app.logger.info(payload)
+            r = requests.post(url, json=payload)
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            try:
+                self.retry(countdown=backoff(self.request.retries))
+            except MaxRetriesExceededError:
+                current_app.logger.info(exc)
+        else:
+            transaction_ids = r.json()
+            return {
+                "transaction_ids": transaction_ids,
+                "update_records": update_records # all record we need t update
+            }
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
     def map_transaction(self, transaction_result):
         """ function to map transaction id that generated into model """
         model = transaction_result["model"]
@@ -123,3 +157,43 @@ class TransactionTask(celery.Task):
                         transaction_id
                     ))
                     self.retry(exc=exc)
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def map_bulk_transaction(self, transaction_result):
+        """ function to map transaction id that generated into model """
+        transaction_ids = transaction_result["transaction_ids"]
+        update_records = transaction_result["update_records"]
+
+        for record in update_records:
+            # convert string into actual model object
+            object_ = str_to_class(record["model"])
+
+            with current_app.connection.start_session(causal_consistency=True) as session:
+                with session.start_transaction():
+                    try:
+                        object_.collection.update_one(
+                            {"_id": ObjectId(record["model_id"])},
+                            {"$push": {
+                                "lst": {
+                                    "transaction_id":
+                                    ObjectId(transaction_ids[0]),
+                                    "st": record["status"]
+                                }
+                            }},
+                            session=session
+                        )
+                        session.commit_transaction()
+                    except (
+                        pymongo.errors.ConnectionFailure,
+                        pymongo.errors.OperationFailure,
+                    ) as exc:
+                        current_app.logger.info("retry map bulk transaction {} ... ".format(
+                            transaction_ids[0]
+                        ))
+                        self.retry(exc=exc)

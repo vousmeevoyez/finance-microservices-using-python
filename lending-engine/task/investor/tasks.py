@@ -31,6 +31,7 @@ from app.api.models.bank import Bank
 from app.api.models.wallet import Wallet
 
 from app.api.lib.helper import send_notif
+from app.api.lib.utils import backoff
 
 from app.config.worker import WORKER, RPC
 # RPC
@@ -42,11 +43,6 @@ from task.investor.rpc.bni_rdl import (
     rdl_account_pb2_grpc,
     rdl_account_pb2
 )
-
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
 
 
 class InvestorTask(celery.Task):

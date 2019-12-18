@@ -27,6 +27,7 @@ class CallbackInfo:
 
 
 def generate_internal_callback(callback_info):
+    """ factory interface to generate callback """
     factory = Factory()
     factory.register("INVEST", InvestCallback)
     factory.register("WITHDRAW", WithdrawCallback)

@@ -15,6 +15,7 @@ from app.api import (
 )
 
 from app.api.lib.helper import str_to_class
+from app.api.lib.utils import backoff
 
 from app.config.worker import WORKER, RPC
 
@@ -22,11 +23,6 @@ from task.virtual_account.rpc.bni_va import (
     virtual_account_pb2_grpc,
     virtual_account_pb2
 )
-
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
 
 
 class VirtualAccountTask(celery.Task):

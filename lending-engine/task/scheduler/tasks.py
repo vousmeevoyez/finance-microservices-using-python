@@ -1,4 +1,3 @@
-import random
 import pytz
 from datetime import datetime, date, timedelta
 
@@ -20,18 +19,22 @@ from app.api.models.borrower import Borrower
 from app.api.models.investment import Investment
 from app.api.models.product import Product
 from app.api.models.loan_request import LoanRequest
+from app.api.models.batch import Schedule, TransactionQueue
+
+from app.api.batch.modules.services import (
+    check_executed_schedule,
+    convert_start_end_to_datetime
+)
+
+from task.transaction.tasks import TransactionTask
 
 from app.api.lib.helper import send_notif
+from app.api.lib.utils import backoff
 
 from app.config.worker import WORKER, RPC
 
 
 TIMEZONE = pytz.timezone("Asia/Jakarta")
-
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
 
 
 def check_grace_period(due_date, grace_period, today):
@@ -441,10 +444,10 @@ class SchedulerTask(celery.Task):
         loan_requests = list(LoanRequest.collection.aggregate([
             {
                 "$match": {
+                    "st": "APPROVED",
                     "app": {
                         "$elemMatch": {
                             "$and": [
-                                {"st": "APPROVED"},
                                 {"ca": {
                                     "$gte": last_cut_off,
                                     "$lte": cut_off
@@ -472,3 +475,85 @@ class SchedulerTask(celery.Task):
 
             send_borrower_notif(loan_request["borrower_id"],
                                 "LOAN_REQUEST_CANCEL")
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def execute_transaction_batch(self):
+        """ execute schedules every hour if there any """
+        schedule_ids = check_executed_schedule()
+
+        current_app.logger.info(
+            "No of Schedules: {}".format(
+                len(schedule_ids)
+            )
+        )
+
+        for schedule_id in schedule_ids:
+            # we need to fetch schedule
+            schedule_info = Schedule.find_one({"id": schedule_id})
+            start_range, end_range = convert_start_end_to_datetime(
+                schedule_info["start"],
+                schedule_info["end"]
+            )
+            # convert back to utc
+            transactions = list(TransactionQueue.collection.aggregate([
+                {
+                    "$match": {
+                        "schedule_id": schedule_id,
+                        "status": "WAITING",
+                        "ca": {
+                            "$gte": start_range,
+                            "$lte": end_range
+                        }
+                    }
+                }
+            ]))
+            if transactions != []:
+                # clean up transactions and format the list
+                current_app.logger.info(
+                    "No of Transaction that going to be processed: {}".format(
+                        len(transactions)
+                    )
+                )
+                formatted_transactions = [
+                    {
+                        "wallet_id": str(trx["wallet_id"]),
+                        "source_id": str(trx["source_id"]),
+                        "source_type": trx["source_type"],
+                        "destination_id": str(trx["destination_id"]),
+                        "destination_type": trx["destination_type"],
+                        "amount": trx["amount"].to_decimal(),
+                        "transaction_type": trx["transaction_type"],
+                    }
+                    for trx in transactions
+                ]
+
+                update_records = [
+                    {
+                        "model": trx["transaction_info"]["model"],
+                        "model_id": trx["transaction_info"]["model_id"],
+                        "status": trx["transaction_info"]["status"],
+                    }
+                    for trx in transactions
+                ]
+
+                task_payload = {
+                    "transactions": formatted_transactions,
+                    "update_records": update_records
+                }
+                current_app.logger.info(
+                    "Transaction that going to be processed: {}".format(
+                        task_payload
+                    )
+                )
+
+                TransactionTask().send_bulk_transaction.apply_async(
+                    kwargs=task_payload,
+                    queue="transaction",
+                    link=TransactionTask().map_bulk_transaction.s().set(queue="transaction")
+                )

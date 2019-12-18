@@ -13,6 +13,7 @@ from tests.api_list import (
     rdl_deposit_callback,
     internal_callback
 )
+from app.api.models.batch import Schedule, TransactionQueue
 from app.api.models.investment import Investment
 from app.api.models.loan_request import LoanRequest
 
@@ -188,9 +189,12 @@ def test_internal_callback_receive_upfront(
 ):
     """ test internal callback for indicating upfront received """
     investment, loan_request, transactions = setup_investment_with_transaction
+
+    receive_upfront_trx = transactions[2]
+
     data = {
-        "transaction_id": str(transactions[2].id),
-        "transaction_type": transactions[2].transaction_type,
+        "transaction_id": str(receive_upfront_trx.id),
+        "transaction_type": receive_upfront_trx.transaction_type,
         "status": "SUCCESS",
     }
     result = internal_callback(setup_client, data)
@@ -221,9 +225,11 @@ def test_internal_callback_upfront_fee(
 ):
     """ test internal callback for indicating succesfully send upfront fee  """
     investment, loan_request, transactions = setup_investment_with_transaction
+    # append transaction into batch to simulate the batch already exexuted
+    upfront_fee_trx = transactions[1]
 
     data = {
-        "transaction_id": str(transactions[1].id),
+        "transaction_id": str(upfront_fee_trx.id),
         "transaction_type": "UPFRONT_FEE",
         "status": "COMPLETED",
     }
@@ -231,6 +237,9 @@ def test_internal_callback_upfront_fee(
     response = result.get_json()
     assert result.status_code == 200
     assert response["status"] == "SEND_TO_PROFIT_COMPLETED"
+
+    investment = Investment.find_one({"id": investment.id})
+    assert any("SEND_TO_PROFIT_COMPLETED" in iv.status for iv in investment.list_of_status)
 
 
 def test_internal_callback_disburse(setup_client,
@@ -260,9 +269,11 @@ def test_internal_callback_invest_fee(
     profit to escrow"""
     investment, loan_request, transactions = setup_investment_with_transaction
 
+    invest_fee_trx = transactions[4]
+
     data = {
-        "transaction_id": str(transactions[4].id),
-        "transaction_type": transactions[4].transaction_type,
+        "transaction_id": str(invest_fee_trx.id),
+        "transaction_type": invest_fee_trx.transaction_type,
         "status": "COMPLETED",
     }
     result = internal_callback(setup_client, data)

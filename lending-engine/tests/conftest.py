@@ -19,6 +19,7 @@ from app.api.models.user import User
 from app.api.models.transaction import PaymentEmbed, Transaction
 from app.api.models.borrower import Borrower
 from app.api.models.file import File, Article
+from app.api.models.batch import Schedule, TransactionQueue
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -676,15 +677,17 @@ def setup_investment_with_loan(setup_investment, make_loan_request):
 
 @pytest.fixture(scope="module")
 def setup_investment_with_transaction(
-    setup_escrow_wallet,
-    setup_profit_wallet,
-    setup_investment_with_loan,
-    make_transaction,
-    setup_investor_wallet,
-    setup_investor
+        setup_escrow_wallet,
+        setup_profit_wallet,
+        setup_investment_with_loan,
+        make_transaction,
+        setup_investor_wallet,
+        setup_investor,
+        setup_schedules
 ):
     # get investment object to be add
     investment, loan_request = setup_investment_with_loan
+
     # create invest transaction
     invest_trx = make_transaction(
         wallet_id=setup_investor_wallet.id,
@@ -751,10 +754,44 @@ def setup_investment_with_transaction(
         transaction_type="RECEIVE_INVEST_FEE"
     )
 
+    """ CREATE DUMMY QUEUE """
+
+    # we need to build queue for transaction queue
+    # create send upfront fee transaction
+    send_upfront_trx_queue = TransactionQueue(
+        schedule_id=setup_schedules[0].id,
+        wallet_id=setup_escrow_wallet.id,
+        source_id=setup_escrow_wallet.id,
+        source_type="ESCROW",
+        destination_id=setup_profit_wallet.id,
+        destination_type="PROFIT",
+        amount=-1000000,
+        transaction_type="UPFRONT_FEE"
+    )
+    send_upfront_trx_queue.commit()
+
+    # we need to build queue for transaction queue
+    # create send invest fee transaction
+    send_invest_fee_trx_queue = TransactionQueue(
+        schedule_id=setup_schedules[2].id,
+        wallet_id=setup_profit_wallet.id,
+        source_id=setup_profit_wallet.id,
+        source_type="PROFIT",
+        destination_id=setup_escrow_wallet.id,
+        destination_type="ESCROW",
+        amount=-1000000,
+        transaction_type="INVEST_FEE"
+    )
+    send_invest_fee_trx_queue.commit()
+
     transactions = []
     invest_trx_payload = {
         "transaction_id": invest_trx.id,
         "status": "SEND_TO_INVESTMENT_REQUESTED"
+    }
+    send_upfront_trx_queue_payload = {
+        "queue_id": send_upfront_trx_queue.id,
+        "status": "SEND_TO_PROFIT_QUEUED"
     }
     send_upfront_trx_payload = {
         "transaction_id": send_upfront_trx.id,
@@ -767,6 +804,10 @@ def setup_investment_with_transaction(
     send_modanaku_trx_payload = {
         "transaction_id": send_modanaku_trx.id,
         "status": "SEND_TO_MODANAKU_REQUESTED"
+    }
+    send_invest_fee_trx_queue_payload = {
+        "queue_id": send_invest_fee_trx_queue.id,
+        "status": "SEND_FEE_TO_ESCROW_REQUESTED"
     }
     send_invest_fee_trx_payload = {
         "transaction_id": send_invest_fee_trx.id,
@@ -784,6 +825,9 @@ def setup_investment_with_transaction(
     transactions.append(receive_invest_fee_trx)
 
     investment.list_of_status.append(invest_trx_payload)
+    # we use batch id instead of transaction id for investment because the trx
+    # id is not available yet
+    investment.list_of_status.append(send_upfront_trx_queue_payload)
     investment.list_of_status.append(send_upfront_trx_payload)
     investment.list_of_status.append(receive_upfront_trx_payload)
     investment.list_of_status.append(send_modanaku_trx_payload)
@@ -791,8 +835,106 @@ def setup_investment_with_transaction(
 
     # add modanaku transaction to loan request
     loan_request.list_of_status.append(send_modanaku_trx_payload)
+    loan_request.list_of_status.append(send_invest_fee_trx_queue_payload)
     loan_request.list_of_status.append(send_invest_fee_trx_payload)
     loan_request.list_of_status.append(receive_invest_fee_trx_payload)
     loan_request.commit()
 
     return investment, loan_request, transactions
+
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_schedules():
+    schedules = []
+    upfront_fee_schedule = Schedule(
+        name="UPFRONT_FEE",
+        start="19:1",
+        end="12:59",
+        executed_at="13:0",
+    )
+    upfront_fee_schedule.commit()
+    schedules.append(upfront_fee_schedule)
+
+    upfront_fee_schedule2 = Schedule(
+        name="UPFRONT_FEE",
+        start="13:1",
+        end="18:59",
+        executed_at="19:0",
+    )
+    upfront_fee_schedule2.commit()
+    schedules.append(upfront_fee_schedule2)
+
+    invest_fee_schedule = Schedule(
+        name="INVEST_FEE",
+        start="20:1",
+        end="7:59",
+        executed_at="8:0",
+    )
+    invest_fee_schedule.commit()
+    schedules.append(invest_fee_schedule)
+
+    invest_fee_schedule2 = Schedule(
+        name="INVEST_FEE",
+        start="8:1",
+        end="19:59",
+        executed_at="20:0",
+    )
+    invest_fee_schedule2.commit()
+    schedules.append(invest_fee_schedule2)
+    return schedules
+
+
+@pytest.fixture(scope="module")
+def make_transaction_queue(setup_schedules, setup_investment_with_transaction):
+    def _make_transaction_queue(schedule_name, created_at):
+        investment, loan_request, transactions = \
+            setup_investment_with_transaction
+
+        schedules = setup_schedules
+
+        selected_schedule = None
+        transaction = None
+        transaction_info  = {}
+        if schedule_name == "UPFRONT_AFTERNOON":
+            selected_schedule = schedules[0]
+            transaction = transactions[2]
+            transaction_info["model"] = "Investment"
+            transaction_info["model_id"] = str(investment.id)
+            transaction_info["status"] = "SEND_TO_PROFIT_REQUESTED"
+        elif schedule_name == "UPFRONT_NIGHT":
+            selected_schedule = schedules[1]
+            transaction = transactions[2]
+            transaction_info["model"] = "Investment"
+            transaction_info["model_id"] = str(investment.id)
+            transaction_info["status"] = "SEND_TO_PROFIT_REQUESTED"
+        elif schedule_name == "INVEST_MORNING":
+            selected_schedule = schedules[2]
+            transaction = transactions[4]
+            transaction_info["model"] = "LoanRequest"
+            transaction_info["model_id"] = str(loan_request.id)
+            transaction_info["status"] = "SEND_FEE_TO_ESCROW_REQUESTED"
+        elif schedule_name == "INVEST_NIGHT":
+            selected_schedule = schedules[3]
+            transaction = transactions[4]
+            transaction_info["model"] = "LoanRequest"
+            transaction_info["model_id"] = str(loan_request.id)
+            transaction_info["status"] = "SEND_FEE_TO_ESCROW_REQUESTED"
+
+        investment, loan_request, transactions = \
+            setup_investment_with_transaction
+
+        queue = TransactionQueue(
+            schedule_id=selected_schedule.id,
+            wallet_id=transaction.wallet_id,
+            source_id=transaction.source_id,
+            source_type=transaction.source_type,
+            destination_id=transaction.destination_id,
+            destination_type=transaction.destination_type,
+            amount=transaction.amount,
+            transaction_type=transaction.transaction_type,
+            ca=created_at,
+            transaction_info=transaction_info
+        )
+        queue.commit()
+        return queue
+    return _make_transaction_queue
