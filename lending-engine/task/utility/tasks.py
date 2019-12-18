@@ -17,6 +17,7 @@ from app.api import (
 
 
 from app.config.worker import WORKER, RPC
+from app.api.lib.utils import backoff
 # RPC
 from task.utility.rpc.email import (
     email_pb2_grpc,
@@ -26,11 +27,6 @@ from task.utility.rpc.mobile import (
     mobile_pb2_grpc,
     mobile_pb2
 )
-
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
 
 
 def encode_content(payload):

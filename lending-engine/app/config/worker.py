@@ -19,7 +19,8 @@ HTTP = {
     "TRANSACTION_ENGINE": {
         "BASE_URL": os.getenv("TRANSACTION_ENGINE_URL") or "http://127.0.0.1:5001",
         "API": {
-            "CREATE": "/api/v1/transaction/"
+            "CREATE": "/api/v1/transaction/",
+            "BULK_CREATE": "/api/v1/transaction/bulk"
         }
     }
 }

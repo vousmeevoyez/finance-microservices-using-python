@@ -53,6 +53,7 @@ class BankAccEmbed(BaseEmbeddedDocument):
 class StatusEmbed(BaseEmbeddedDocument):
     """ shared status embedded models """
     transaction_id = ObjectIdField()
+    queue_id = ObjectIdField()
     status = StrField(attribute="st")
     message = StrField(attribute="msg")
 
@@ -183,3 +184,29 @@ class BaseBankDocument(BaseDocument):
         except IndexError:
             raise TransactionStatusNotFound
         return transaction
+
+    def get_by_transactions(self, transaction_id):
+        """ common inteface for one trx id to multiple trx """
+        # generate matcher and projection here
+        result = self.collection.aggregate([
+                {
+                    "$match": {
+                        "lst": {
+                            "$elemMatch": {
+                                "$and": [{"transaction_id": ObjectId(transaction_id)}]
+                            }
+                        },
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": 1
+                    }
+                }
+        ])
+        lists = list(result)
+        if lists == []:
+            raise TransactionStatusNotFound
+        # we only need to return _id
+        transaction_ids = [i["_id"] for i in lists]
+        return transaction_ids

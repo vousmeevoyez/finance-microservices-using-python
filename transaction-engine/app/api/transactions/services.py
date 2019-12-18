@@ -52,7 +52,7 @@ def aggregate_by_destination_id(transactions):
             trx["destination_type"],
             trx["transaction_type"],
             trx["wallet_id"]
-        ] += trx['amount']
+        ] += int(trx['amount'])
 
     # after we got the aggregated result we revert back the result into the
     # original state

@@ -12,6 +12,7 @@ from string import Template
 
 from app.api.lib.BniEnc3 import BniEnc, BNIVADecryptError
 from app.api.models.base import BankAccEmbed, StatusEmbed
+from app.api.models.batch import Schedule, TransactionQueue
 from app.api.models.bank import Bank
 from app.api.models.user import User
 from app.api.models.borrower import Borrower

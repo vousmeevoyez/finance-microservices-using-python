@@ -54,6 +54,7 @@ class TransactionBulkRoutes(Routes):
     __serializer__ = BulkTransactionSchema()
 
     def post(self):
+        #request_data = self.serialize(self.payload(), load=True)
         request_data = self.serialize(self.payload())
         current_app.logger.info("Request Data......")
         current_app.logger.info(request_data)

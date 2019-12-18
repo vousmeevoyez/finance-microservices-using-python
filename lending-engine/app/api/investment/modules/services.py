@@ -20,6 +20,8 @@ from task.investment.tasks import InvestmentTask
 from task.virtual_account.tasks import VirtualAccountTask
 from task.transaction.tasks import TransactionTask
 from task.utility.tasks import UtilityTask
+# services
+from app.api.batch.modules.services import schedule_transaction
 # core
 from app.api.lib.helper import send_notif
 from app.api.lib.core.message import RESPONSE as error
@@ -165,15 +167,18 @@ class InvestmentServices:
     def send_to_profit(self):
         """ wrapper function to wrap all background task to send and receive money to
         profit master """
-        # need to scheduled payment to profit
-        upfront_fee = self._build_send_upfront_payload()
+        """ to reduce cost instead of sending it directly we put the
+        transaction into batch and later it will be executed by the worker """
+        upfront_fee_payload = self._build_send_upfront_payload()
 
-        TransactionTask().send_transaction.apply_async(
-            kwargs=upfront_fee,
-            queue="transaction",
-            link=TransactionTask().map_transaction.s().set(queue="transaction")
+        # schedule upfront fee to batch
+        upfront_fee_payload["schedule_name"] = "UPFRONT_FEE"
+        queue_id = schedule_transaction(**upfront_fee_payload)
+        self.investment.list_of_status.append(
+            {"status": "SEND_TO_PROFIT_QUEUED", "queue_id": queue_id}
         )
-        return upfront_fee
+        self.investment.commit()
+        return upfront_fee_payload
 
     def execute_disbursements(self):
         """ execute disbursments to all designated bank account asynchronous"""
@@ -202,19 +207,22 @@ class InvestmentServices:
             parsed_template = template.substitute(PEMBERI_PINJAMAN=investor_name)
             article.content = parsed_template
             article.commit()
-
         return disbursements
 
-    def continue_investment(self):
-        """ after we successfully receive callback to escrow we continue investment
-        flow execution """
-        # need to increase escrow balance
+    def increase_escrow_balance(self):
         receive_invest_payload = self._build_receive_invest_payload()
         TransactionTask().send_transaction.apply_async(
             kwargs=receive_invest_payload,
             queue="transaction",
             link=TransactionTask().map_transaction.s().set(queue="transaction")
         )
+        return receive_invest_payload
+
+    def continue_investment(self):
+        """ after we successfully receive callback to escrow we continue investment
+        flow execution """
+        # need to increase escrow balance
+        receive_invest_payload = self.increase_escrow_balance()
 
         # need to disable investment va
         VirtualAccountTask().disable_va.apply_async(

@@ -66,7 +66,7 @@ class DevelopmentConfig(Config):
         # period
         "check-overdues": {
             "task": "task.scheduler.tasks.calculate_overdues",
-            "schedule": crontab(minute=5),
+            "schedule": crontab(minute="*/5"),
             "options": {
                 "queue": "periodic",
                 "link": signature(
@@ -105,6 +105,14 @@ class DevelopmentConfig(Config):
         "auto-cancel-approved-loan": {
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
             "schedule": crontab(hour=0, minute=0),
+            "options": {
+                "queue": "periodic",
+            }
+        },
+        # execute batch every hour
+        "execute-batch": {
+            "task": "task.scheduler.tasks.execute_transaction_batch",
+            "schedule": crontab(),
             "options": {
                 "queue": "periodic",
             }
@@ -167,22 +175,42 @@ class ProductionConfig(Config):
         # we set sending notiifcation every 8 morning
         "remind-loan-before-due-dates": {
             "task": "task.scheduler.tasks.remind_before_due_dates",
-            "schedule": crontab(hour=8, minute=0)
+            "schedule": crontab(hour=8, minute=0),
+            "options": {
+                "queue": "periodic",
+            }
         },
         # we set sending notiifcation every 15 evening
         "remind-loan-after-due-dates": {
             "task": "task.scheduler.tasks.remind_after_due_dates",
-            "schedule": crontab(hour=15, minute=0)
+            "schedule": crontab(hour=15, minute=0),
+            "options": {
+                "queue": "periodic",
+            }
         },
         # we set auto cancel every midnight
         "auto-cancel-verifying-loan": {
             "task": "task.scheduler.tasks.auto_cancel_verifying_loan",
-            "schedule": crontab(hour=0, minute=0)
+            "schedule": crontab(hour=0, minute=0),
+            "options": {
+                "queue": "periodic",
+            }
         },
         # we set auto cancel every midnight
         "auto-cancel-approved-loan": {
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
-            "schedule": crontab(hour=0, minute=0)
+            "schedule": crontab(hour=0, minute=0),
+            "options": {
+                "queue": "periodic",
+            }
+        },
+        # execute batch every hour
+        "execute-batch": {
+            "task": "task.scheduler.tasks.execute_transaction_batch",
+            "schedule": crontab(minute="*/60"),
+            "options": {
+                "queue": "periodic",
+            }
         },
     }
 

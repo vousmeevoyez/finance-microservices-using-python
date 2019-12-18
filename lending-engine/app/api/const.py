@@ -62,16 +62,33 @@ TRANSACTION_TYPE_TO_STATUS = {
 }
 
 
-BATCH = {
-    "START": {
-        "HOUR": "08",
-        "MINUTE": "00"
+SCHEDULES = [
+    # IN WIB
+    {
+        "name": "UPFRONT_FEE",
+        "start": "19:1",
+        "end": "12:59",
+        "executed_at": "13:0",
     },
-    "END": {
-        "HOUR": "20",
-        "MINUTE": "00"
+    {
+        "name": "UPFRONT_FEE",
+        "start": "13:1",
+        "end": "18:59",
+        "executed_at": "19:0",
+    },
+    {
+        "name": "INVEST_FEE",
+        "start": "20:1",
+        "end": "7:59",
+        "executed_at": "8:0",
+    },
+    {
+        "name": "INVEST_FEE",
+        "start": "8:1",
+        "end": "19:59",
+        "executed_at": "20:0",
     }
-}
+]
 
 NOTIFICATIONS = {
     "SUBJECT": {

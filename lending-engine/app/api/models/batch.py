@@ -4,35 +4,56 @@
 """
 from datetime import datetime
 
-from umongo import Document, EmbeddedDocument
-from umongo import fields
 from umongo.fields import (
-    DecimalField,
-    ObjectIdField,
-    StrField,
-    DateTimeField,
     EmbeddedField,
+    StrField,
     ListField,
+    ObjectIdField,
+    DateTimeField,
+    DecimalField
 )
 
 from app.api import instance
+from app.api.models.base import (
+    BaseDocument,
+    BaseEmbeddedDocument,
+    BaseBankDocument
+)
 
 
 @instance.register
-class InvestmentEmbed(EmbeddedDocument):
-    investment_id = ObjectIdField()
-    amount = DecimalField(default=0)
-
-
-@instance.register
-class Batch(Document):
-    """ Virtual Account ODM """
-    scheduled_at = DateTimeField(required=True)
-    accumulated_amount = DecimalField(default=0)
-    status = StrField(default="WAITING")  # COMPLETED | FAILED
-    investments = ListField(EmbeddedField(InvestmentEmbed))
-    created_at = DateTimeField(required=True, attribute="ca", default=datetime.utcnow)
-    updated_at = DateTimeField(attribute="ua", default=datetime.utcnow)
+class Schedule(BaseDocument):
+    """ Schedule Model """
+    name = StrField()
+    start = StrField()
+    end = StrField()
+    executed_at = StrField()
 
     class Meta:
-        collection_name = "lender_batch"
+        collection_name = "lender_schedules"
+
+
+@instance.register
+class TransactionInfoEmbed(BaseEmbeddedDocument):
+    """ transaction info embedded Model """
+    model = StrField()
+    model_id = StrField()
+    status = StrField()
+
+@instance.register
+class TransactionQueue(BaseDocument):
+    """ transaction queue """
+    status = StrField(default="WAITING")
+    schedule_id = ObjectIdField()
+    wallet_id = ObjectIdField()
+    source_id = ObjectIdField()
+    source_type = StrField()
+    destination_id = ObjectIdField()
+    destination_type = StrField()
+    transaction_type = StrField()
+    amount = DecimalField(default=0)
+    request_transaction_id = ObjectIdField()
+    transaction_info = EmbeddedField(TransactionInfoEmbed)
+
+    class Meta:
+        collection_name = "lender_queue"

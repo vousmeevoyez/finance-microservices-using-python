@@ -1,5 +1,6 @@
 import pytest
 
+from app.api.models.investment import Investment
 from app.api.investment.modules.services import InvestmentServices
 
 
@@ -80,3 +81,8 @@ def test_continue_investment(setup_investment):
     assert response["upfront_fee"]
     assert response["receive_invest"]
     assert response["disbursements"]
+
+    # need to make sure that upfront fee queue properly
+    investment = Investment.find_one({"id": setup_investment.id})
+    assert investment.list_of_status[0].status == "SEND_TO_PROFIT_QUEUED"
+    assert investment.list_of_status[0].queue_id

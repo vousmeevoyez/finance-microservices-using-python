@@ -16,6 +16,8 @@ from app.api.models.loan_request import LoanRequest, LoanRequestNotFound
 from app.api.models.product import Product
 from app.api.models.wallet import Wallet
 from app.api.models.user import User
+# services
+from app.api.batch.modules.services import schedule_transaction
 # task
 from task.transaction.tasks import TransactionTask
 from task.virtual_account.tasks import VirtualAccountTask
@@ -89,7 +91,7 @@ class LoanRequestServices:
             lambda loan_request: loan_request.loan_request_id ==
             self.loan_request.id, self.investment.loan_requests
         ))
-        fee = loan_request_fee[0].fees[0].investor_fee
+        fee = loan_request_fee[0].fees[-1].investor_fee
 
         send_invest_fee = {
             "wallet_id": str(self.profit_wallet.id),
@@ -106,6 +108,56 @@ class LoanRequestServices:
         }
 
         return send_invest_fee
+
+    def increase_escrow_balance(self):
+        # trigger credit transaction to increase escrow balance
+        receive_repayment_payload = self._build_receive_repayment_payload()
+        TransactionTask().send_transaction.apply_async(
+            kwargs=receive_repayment_payload,
+            queue="transaction",
+            link=TransactionTask().map_transaction.s().set(queue="transaction")
+        )
+        return receive_repayment_payload
+
+    def send_invest_fee(self):
+        """ trigger sending money from profit to escrow for repaying investor """
+        send_invest_payload = self._build_invest_fee_payload()
+        send_invest_payload["schedule_name"] = "INVEST_FEE"
+        # adding queue id to loan request status so we know its already
+        # scheduled
+        queue_id = schedule_transaction(**send_invest_payload)
+        self.loan_request.list_of_status.append({
+            "queue_id": queue_id,
+            "status": "SEND_FEE_TO_ESCROW_QUEUED"
+        })
+        self.loan_request.commit()
+
+        return send_invest_payload
+
+    def send_borrower_notif(self, product_id, email, user_id,
+                            loan_request_code, amount, device_id):
+        # trigger email to borrower
+        current_time = datetime.utcnow()
+        current_local_time = LOCAL_TIMEZONE.localize(current_time)
+        repayment_date = current_local_time.strftime("%Y-%m-%d %H:%M")
+        # get product name
+        product = Product.find_one(
+            {"_id": product_id}
+        )
+        # send repayment email to borrower
+        send_notif(
+            recipient=email,
+            user_id=user_id,
+            notif_type="LOAN_REQUEST_REPAYMENT",
+            platform="mobile",
+            custom_content={
+                "repayment_date": repayment_date,
+                "loan_request_code": loan_request_code,
+                "repayment_amount": amount,
+                "product": product.product_name
+            },
+            device_token=device_id
+        )
 
     def process_repayment(self):
         """ process repayment """
@@ -124,43 +176,20 @@ class LoanRequestServices:
         self.loan_request.commit()
 
         # trigger credit transaction to increase escrow balance
-        receive_repayment_payload = self._build_receive_repayment_payload()
-        TransactionTask().send_transaction.apply_async(
-            kwargs=receive_repayment_payload,
-            queue="transaction",
-            link=TransactionTask().map_transaction.s().set(queue="transaction"),
-        )
+        receive_repayment_payload = self.increase_escrow_balance()
 
         # we dont have enough balance yet to repay investor
         # trigger send money from profit to escrow
-        send_invest_payload = self._build_invest_fee_payload()
-        TransactionTask().send_transaction.apply_async(
-            kwargs=send_invest_payload,
-            queue="transaction",
-            link=TransactionTask().map_transaction.s().set(queue="transaction"),
-        )
+        send_invest_payload = self.send_invest_fee()
 
         # trigger email to borrower
-        current_time = datetime.utcnow()
-        current_local_time = LOCAL_TIMEZONE.localize(current_time)
-        repayment_date = current_local_time.strftime("%Y-%m-%d %H:%M")
-        # get product name
-        product = Product.find_one(
-            {"_id": self.loan_request.product_id}
-        )
-        # send repayment email to borrower
-        send_notif(
-            recipient=self.borrower.email,
-            user_id=self.borrower.user_id,
-            notif_type="LOAN_REQUEST_REPAYMENT",
-            platform="mobile",
-            custom_content={
-                "repayment_date": repayment_date,
-                "loan_request_code": self.loan_request.loan_request_code,
-                "repayment_amount": self.loan_request.requested_loan_request,
-                "product": product.product_name
-            },
-            device_token=self.user.device_id
+        self.send_borrower_notif(
+            self.loan_request.product_id,
+            self.borrower.email,
+            self.borrower.user_id,
+            self.loan_request.loan_request_code,
+            self.loan_request.requested_loan_request,
+            self.user.device_id
         )
 
         # later after we receive callback that invest successfully sent we

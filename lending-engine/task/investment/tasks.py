@@ -25,6 +25,8 @@ from app.api.models.investment import (
 )
 from app.api.models.loan_request import LoanRequest
 
+from app.api.lib.utils import backoff
+
 from app.config.external.bank import MODANAKU
 from app.config.worker import WORKER, RPC
 
@@ -34,11 +36,6 @@ from task.investment.rpc.modanaku import (
     plan_pb2_grpc,
     plan_pb2
 )
-
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
 
 
 class InvestmentTask(celery.Task):
