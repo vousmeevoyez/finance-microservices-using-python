@@ -1,7 +1,11 @@
 import pytz
 from datetime import date, datetime, timedelta
 from freezegun import freeze_time
-from task.scheduler.tasks import check_grace_period, SchedulerTask
+from task.scheduler.tasks import (
+    check_grace_period,
+    determine_loan_quality,
+    SchedulerTask
+)
 
 from app.api.models.batch import Schedule, TransactionQueue
 from app.api.models.investment import Investment
@@ -9,6 +13,38 @@ from app.api.models.loan_request import LoanRequest
 
 
 TIMEZONE = pytz.timezone("Asia/Jakarta")
+
+
+def test_determine_loan_quality():
+    # 0 < 30 lancar
+    loan_status, payment_status = determine_loan_quality(1)
+    assert loan_status == "DISBURSED"
+    assert payment_status == "LANCAR"
+
+    # 0 < 30 lancar
+    loan_status, payment_status = determine_loan_quality(29)
+    assert loan_status == "DISBURSED"
+    assert payment_status == "LANCAR"
+
+    # 31 < 90 tidak lancar
+    loan_status, payment_status = determine_loan_quality(31)
+    assert loan_status == "DISBURSED"
+    assert payment_status == "TIDAK_LANCAR"
+
+    # 31 < 90 tidak lancar
+    loan_status, payment_status = determine_loan_quality(89)
+    assert loan_status == "DISBURSED"
+    assert payment_status == "TIDAK_LANCAR"
+
+    # 31 < 90 tidak lancar
+    loan_status, payment_status = determine_loan_quality(90)
+    assert loan_status == "DISBURSED"
+    assert payment_status == "TIDAK_LANCAR"
+
+    # 90 > macet
+    loan_status, payment_status = determine_loan_quality(91)
+    assert loan_status == "WRITEOFF"
+    assert payment_status == "MACET"
 
 @freeze_time("2019-11-25")
 def test_check_grace_period_on_time():
@@ -81,7 +117,7 @@ def test_calculate_overdues_grace2(make_loan_request):
 
 
 @freeze_time("2019-11-28")
-def test_calculate_overdues_past(make_loan_request):
+def test_calculate_overdues_3_day(make_loan_request):
     # setup some record that have duedate of 25
     loan_request = list(LoanRequest.find({"status": "DISBURSED"}))[0]
 
@@ -89,21 +125,23 @@ def test_calculate_overdues_past(make_loan_request):
     SchedulerTask().calculate_overdues()
 
     loan_request = LoanRequest.find_one({"id": loan_request.id})
-    assert loan_request.payment_state_status == "TIDAK_LANCAR"
+    assert loan_request.payment_state_status == "LANCAR"
     assert loan_request.overdue == 3
 
 
-@freeze_time("2019-11-28")
-def test_calculate_overdues_past(make_loan_request):
+@freeze_time("2019-12-29")
+def test_calculate_overdues_31_day(make_loan_request):
     # setup some record that have duedate of 25
     loan_request = list(LoanRequest.find({"status": "DISBURSED"}))[0]
+    loan_request.overdue = 30
+    loan_request.commit()
 
     # setup some record that have duedate of 25
     SchedulerTask().calculate_overdues()
 
     loan_request = LoanRequest.find_one({"id": loan_request.id})
     assert loan_request.payment_state_status == "TIDAK_LANCAR"
-    assert loan_request.overdue == 3
+    assert loan_request.overdue == 31
 
 
 def test_calculate_overdues_write_off(make_loan_request):
@@ -112,7 +150,7 @@ def test_calculate_overdues_write_off(make_loan_request):
     loan_request = LoanRequest.find_one(
         {"id": loan_request.id}
     )
-    loan_request.overdue = 89
+    loan_request.overdue = 90
     loan_request.commit()
 
     # setup some record that have duedate of 25
@@ -123,7 +161,7 @@ def test_calculate_overdues_write_off(make_loan_request):
     )
     assert loan_request.payment_state_status == "MACET"
     assert loan_request.status == "WRITEOFF"
-    assert loan_request.overdue == 90
+    assert loan_request.overdue == 91
 
 
 def test_calculate_late_fees_case1(setup_investment, setup_investor, make_loan_request):
@@ -389,7 +427,7 @@ def test_reminder_after_due_date(make_loan_request):
     # setup some record that have duedate of 25
     SchedulerTask().remind_after_due_dates()
 
-
+'''
 @freeze_time("06:00:59")  # in utc is 13.00
 def test_execute_transaction_batch(make_transaction_queue):
     """ simulate executing schedules """
@@ -399,8 +437,7 @@ def test_execute_transaction_batch(make_transaction_queue):
 
     # setup some record that have duedate of 25
     SchedulerTask().execute_transaction_batch()
-
-
+'''
 @freeze_time("12:00:59")  # in utc is 13.00
 def test_execute_transaction_batch2(make_transaction_queue):
     """ simulate executing schedules """
@@ -410,3 +447,8 @@ def test_execute_transaction_batch2(make_transaction_queue):
 
     # setup some record that have duedate of 25
     SchedulerTask().execute_transaction_batch()
+
+
+def test_generate_ojk_report():
+    """ test generating ojk report"""
+    SchedulerTask().generate_ojk_report()

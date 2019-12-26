@@ -1,6 +1,8 @@
 """
     Serializer & Deserialize
 """
+import pytz
+from datetime import datetime
 from marshmallow import (
     fields,
     ValidationError,
@@ -8,6 +10,7 @@ from marshmallow import (
     post_load
 )
 from app.api import ma
+from app.api.const import P2P_ID
 from app.config.external.bank import BNI_ECOLLECTION
 
 
@@ -20,6 +23,13 @@ def cannot_be_blank(string):
     if not string:
         raise ValidationError("Data cannot be blank")
 
+
+def generate_local_date():
+    timezone = pytz.timezone("Asia/Jakarta")
+    now = datetime.utcnow()
+    local_now = timezone.localize(now)
+    local_date_string = local_now.strftime("%Y%m%d")
+    return local_date_string
 
 def is_repayment_or_investment(account_no):
     # fixed pattern
@@ -113,3 +123,93 @@ class WithdrawSchema(ma.Schema):
     """ this is schema for withdraw callback """
     destination_id = fields.Str(required=True, validate=cannot_be_blank)
     amount = fields.Int(required=True, validate=cannot_be_blank)
+
+
+class LoanBorrowerReportSchema(ma.Schema):
+    """ this is schema for withdraw callback """
+    p2p_id = fields.Str(default=P2P_ID)
+    borrower_id = fields.Method("extract_borrower_code")
+    borrower_type = fields.Str(default="1")
+    borrower_name = fields.Method("concat_to_full_name")
+    identity_no = fields.Method("extract_ktp_no")
+    npwp_no = fields.Method("extract_npwp_no")
+    loan_id = fields.Str(attribute="lrc")
+    agreement_date = fields.Method("extract_agreement_date")
+    disburse_date = fields.Method("extract_disburse_date")
+    loan_amount = fields.Str(attribute="lar")
+    reported_date = fields.Str(default=generate_local_date)
+    remaining_loan_amount = fields.Method("calculate_remaining_loan_amount")
+    due_date = fields.Method("extract_due_date")
+    quality = fields.Method("convert_to_quality")
+    current_dpd = fields.Str(attribute="ov")
+    max_dpd = fields.Str(attribute="ov")
+    status = fields.Method("convert_to_status")
+
+    def concat_to_full_name(self, obj):
+        first_name = obj["borrower"]["fn"]
+        middle_name = obj["borrower"]["mn"]
+        last_name = obj["borrower"]["ln"]
+
+        full_name = first_name + " " + middle_name + " " + last_name
+        if middle_name == "":
+            full_name = first_name + " " + last_name
+        return full_name
+
+
+    def extract_borrower_code(self, obj):
+        return obj["borrower"]["bc"]
+
+
+    def extract_ktp_no(self, obj):
+        return obj["borrower"]["ktp"]["kn"]
+
+
+    def extract_npwp_no(self, obj):
+        return obj["borrower"]["npwp"]["nn"]
+
+
+    def extract_agreement_date(self, obj):
+        agreement_date = obj["tnc"]["aa"]
+        agreement_date_string = agreement_date.strftime("%Y%m%d")
+        return agreement_date_string
+
+
+    def extract_disburse_date(self, obj):
+        list_of_status = obj["lst"]
+        print(list_of_status)
+        result = list(filter(
+            lambda item: item["st"] == \
+            'SEND_TO_MODANAKU_COMPLETED', list_of_status
+        ))
+        disburse_date = result[0]["ca"]
+        disburse_date_string = disburse_date.strftime("%Y%m%d")
+        return disburse_date_string
+
+
+    def calculate_remaining_loan_amount(self, obj):
+        remaining = obj["lar"]
+        if obj["st"] == "PAID":
+            remaining = 0
+        return str(remaining)
+
+
+    def extract_due_date(self, obj):
+        due_date = obj["dd"]
+        due_date_string = due_date.strftime("%Y%m%d")
+        return due_date_string
+
+    def convert_to_quality(self, obj):
+        quality = "1"
+        if obj["psts"] == "TIDAK_LANCAR":
+            quality = "2"
+        elif obj["psts"] == "MACET":
+            quality = "3"
+        return quality
+
+    def convert_to_status(self, obj):
+        status = "O"
+        if obj["st"] == "PAID":
+            status = "L"
+        elif obj["st"] == "WRITEOFF":
+            status = "W"
+        return status

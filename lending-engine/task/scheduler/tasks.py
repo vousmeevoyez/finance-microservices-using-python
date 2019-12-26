@@ -1,4 +1,6 @@
+import io
 import pytz
+import requests
 from datetime import datetime, date, timedelta
 
 from bson.decimal128 import Decimal128
@@ -20,10 +22,17 @@ from app.api.models.investment import Investment
 from app.api.models.product import Product
 from app.api.models.loan_request import LoanRequest
 from app.api.models.batch import Schedule, TransactionQueue
+from app.api.models.report import RegulationReport
 
 from app.api.batch.modules.services import (
     check_executed_schedule,
     convert_start_end_to_datetime
+)
+from app.api.report.modules.services import (
+    create_afpi_report_entry,
+    generate_afpi_report,
+    upload_file_via_ftp,
+    ReportServicesError
 )
 
 from task.transaction.tasks import TransactionTask
@@ -31,7 +40,9 @@ from task.transaction.tasks import TransactionTask
 from app.api.lib.helper import send_notif
 from app.api.lib.utils import backoff
 
+from app.api.const import LOAN_QUALITIES
 from app.config.worker import WORKER, RPC
+from app.config.external.analyst import ANALYST_BE
 
 
 TIMEZONE = pytz.timezone("Asia/Jakarta")
@@ -42,11 +53,35 @@ def check_grace_period(due_date, grace_period, today):
     return due_date <= today <= due_date + timedelta(days=grace_period)
 
 
-def check_write_off(overdue):
+def determine_loan_quality(overdue):
     """ function to check whether today write off or not """
-    if overdue >= 89:
-        return True
-    return False
+    loan_status = "DISBURSED"
+    # start + operator + overdue + operator + end
+    # x <= overdue <= y
+    if eval(
+            LOAN_QUALITIES["LANCAR"]["start"]
+            + LOAN_QUALITIES["LANCAR"]["operator"]
+            + str(overdue)
+            + LOAN_QUALITIES["LANCAR"]["operator"]
+            + LOAN_QUALITIES["LANCAR"]["end"]
+    ):
+        payment_status = "LANCAR"
+    elif eval(
+            LOAN_QUALITIES["TIDAK_LANCAR"]["start"]
+            + LOAN_QUALITIES["TIDAK_LANCAR"]["operator"]
+            + str(overdue)
+            + LOAN_QUALITIES["TIDAK_LANCAR"]["operator"]
+            + LOAN_QUALITIES["TIDAK_LANCAR"]["end"]
+    ):
+        payment_status = "TIDAK_LANCAR"
+    elif eval(
+            LOAN_QUALITIES["MACET"]["start"]
+            + LOAN_QUALITIES["MACET"]["operator"]
+            + str(overdue)
+    ):
+        loan_status = "WRITEOFF"
+        payment_status = "MACET"
+    return loan_status, payment_status
 
 
 def calculate_rate(type_, amount):
@@ -174,15 +209,18 @@ class SchedulerTask(celery.Task):
             )
             if not is_grace_period:
                 # if its already 89 days:
-                if check_write_off(current_overdue):
+                loan_status, payment_status = \
+                    determine_loan_quality(current_overdue + 1)
+
+                if payment_status == "MACET":
                     current_app.logger.info(
                         "should mark as write off..."
                     )
                     LoanRequest.collection.update_one(
                         {"_id": loan_request["_id"]},
                         {"$set": {
-                            "st": "WRITEOFF",
-                            "psts": "MACET"
+                            "st": loan_status,
+                            "psts": payment_status
                         }}
                     )
                 else:
@@ -194,7 +232,7 @@ class SchedulerTask(celery.Task):
                         {"_id": loan_request["_id"]},
                         {
                             "$set": {
-                                "psts": "TIDAK_LANCAR"
+                                "psts": payment_status
                             }
                         }
                     )
@@ -557,3 +595,111 @@ class SchedulerTask(celery.Task):
                     queue="transaction",
                     link=TransactionTask().map_bulk_transaction.s().set(queue="transaction")
                 )
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def generate_afpi_report(self):
+        """ generate afpi report every 18.00 WIB """
+        try:
+            regulation_report = create_afpi_report_entry()
+        except ReportServicesError:
+            self.retry()
+        else:
+            zip_name = generate_afpi_report(regulation_report.id)
+            current_app.logger.info(
+                "Generating AFPI Report: {} with file {}".format(
+                    str(regulation_report.id), zip_name
+                )
+            )
+            # return zip name so later it can be chained using celery
+            return zip_name, str(regulation_report.id)
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def send_afpi_report(self, generate_afpi_report_response):
+        """ read a file and send afpi report every 00.00 WIB through SFTP """
+        zip_name, regulation_report_id = generate_afpi_report_response
+
+        current_app.logger.info(
+            "begin upload AFPI Report: {} ".format(
+                zip_name
+            )
+        )
+        # upload it through sftp
+        with open(zip_name, "rb") as zf:
+            # open the actual file and convert into file like object
+            try:
+                upload_file_via_ftp(io.BytesIO(zf.read()), zip_name)
+            except ReportServicesError:
+                self.retry()
+
+        regulation_report = RegulationReport.find_one({"id": ObjectId(regulation_report_id)})
+        regulation_report.list_of_status.append({"status": "SENT"})
+        regulation_report.commit()
+
+        current_app.logger.info(
+            "upload AFPI Report: {} completed".format(
+                zip_name
+            )
+        )
+
+    @celery.task(
+        bind=True,
+        max_retries=int(WORKER["MAX_RETRIES"]),
+        task_soft_time_limit=WORKER["SOFT_LIMIT"],
+        task_time_limit=WORKER["SOFT_LIMIT"],
+        acks_late=WORKER["ACKS_LATE"],
+    )
+    def generate_ojk_report(self):
+        """ trigger ojk report on anaylst backend"""
+        # fetch token from backend
+        base_url = ANALYST_BE["BASE_URL"]
+        endpoint = ANALYST_BE["ENDPOINTS"]["LOGIN"]
+        url = base_url + endpoint
+
+        payload = {
+            "username": ANALYST_BE["USERNAME"],
+            "password": ANALYST_BE["PASSWORD"],
+            "accountType": "ANALYST"
+        }
+
+        try:
+            r = requests.post(url, payload)
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            try:
+                self.retry(countdown=backoff(self.request.retries))
+            except MaxRetriesExceededError:
+                current_app.logger.info(exc)
+
+        access_token = r.json()["payload"]["token"]
+
+        # geenrate report
+        local_now = TIMEZONE.localize(datetime.utcnow())
+        report_types = ["CA", "LENDER"]
+
+        endpoint = ANALYST_BE["ENDPOINTS"]["CREATE_REPORT"]
+
+        for report in report_types:
+            url = base_url + endpoint.format(local_now.date(), report)
+
+            try:
+                print(url)
+                r = requests.get(url, headers={"authorization": access_token})
+                print(r.json())
+                r.raise_for_status()
+            except requests.exceptions.HTTPError as exc:
+                try:
+                    self.retry(countdown=backoff(self.request.retries))
+                except MaxRetriesExceededError:
+                    current_app.logger.info(exc)

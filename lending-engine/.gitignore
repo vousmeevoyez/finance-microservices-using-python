@@ -114,3 +114,6 @@ dmypy.json
 
 # data
 data/
+*.zip
+*.csv
+

@@ -1,6 +1,9 @@
 """
     Constant used in lending engine
 """
+import os
+
+P2P_ID = os.environ.get("P2P_ID") or "123456"
 
 TYPE_TO_BANK_TYPES = {
     "INVESTOR": "RDL_ACCOUNT",
@@ -89,6 +92,23 @@ SCHEDULES = [
         "executed_at": "20:0",
     }
 ]
+
+LOAN_QUALITIES = {
+    "LANCAR": {
+        "start": "0",
+        "end": "30",
+        "operator": "<="
+    },
+    "TIDAK_LANCAR": {
+        "start": "31",
+        "end": "90",
+        "operator": "<="
+    },
+    "MACET": {
+        "start": "91",
+        "operator": ">="
+    },
+}
 
 NOTIFICATIONS = {
     "SUBJECT": {

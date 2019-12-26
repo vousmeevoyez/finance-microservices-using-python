@@ -13,7 +13,7 @@ COPY . /app
 # second stage build
 FROM python:3.7-slim AS release
 # needed to able run make command
-RUN apt-get update && apt-get install make
+RUN apt-get update && apt-get install make && apt-get install p7zip-full -y
 # set work dir
 WORKDIR /app
 # copy everything from base

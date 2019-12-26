@@ -44,6 +44,7 @@ def create_random_borrower_user():
 def create_random_borrower():
     user = create_random_borrower_user()
     borrower_code = random.randint(11111111, 9999999999)
+    npwp_no = random.randint(1111111111111111, 9999999999999999)
     data = {
         "domicile_country": "Indonesia",
         "email": user.email,
@@ -78,7 +79,7 @@ def create_random_borrower():
             "validation": True
         },
         "npwp": {
-            "no": "88775566",
+            "no": str(npwp_no),
             "validation": True
         },
         "work_info": [
@@ -121,7 +122,13 @@ def create_random_borrower():
                 "employee_no_validation": True,
                 "employment_status_validation": False,
                 "position_validation": True,
-                "work_date_start_validation": False
+                "work_date_start_validation": False,
+                "worklog": {
+                    "regular_shit": "0",
+                    "overtime": "0",
+                    "unpaid": "0",
+                    "working_period": "4",
+                }
             }
         ],
         "user_id": user.id,
