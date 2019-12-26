@@ -9,6 +9,7 @@ from flask import Blueprint
 from app.api.investor import api as investor_ns
 from app.api.investment import api as investment_ns
 from app.api.callback import api as callback_ns
+from app.api.report import api as report_ns
 
 class CustomApi(Api):
     """ Custom API Classs """
@@ -45,3 +46,4 @@ api = CustomApi(
 api.add_namespace(investor_ns, path="/investor")
 api.add_namespace(callback_ns, path="/callback")
 api.add_namespace(investment_ns, path="/investment")
+api.add_namespace(report_ns, path="/report")

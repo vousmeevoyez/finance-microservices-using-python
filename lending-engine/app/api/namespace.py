@@ -14,3 +14,7 @@ class CallbackNamespace:
 
 class InvestmentNamespace:
     api = Namespace("investment")
+
+
+class ReportNamespace:
+    api = Namespace("report")

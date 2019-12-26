@@ -4,9 +4,16 @@
     This is module for storing all configuration for various environments
 """
 import os
+import pytz
+from datetime import datetime, timedelta
 from celery.schedules import crontab
 from celery import signature
 
+TIMEZONE = pytz.timezone("Asia/Jakarta")
+local_now = TIMEZONE.localize(datetime.utcnow())
+tomorrow_morning = local_now.replace(hour=0, minute=0, second=1)
+# for testing purpose we mark it 2 minutes
+tomorrow_morning_dev = local_now + timedelta(minutes=15)
 
 class Config:
     """ This is base class for configuration """
@@ -47,6 +54,7 @@ class Config:
     }
     CELERY_TRACK_STARTED = True
     CELERY_TIMEZONE = "Asia/Jakarta"
+    ALLOWED_EXTENSIONS = {'zip'}
 
 
 class DevelopmentConfig(Config):
@@ -109,7 +117,7 @@ class DevelopmentConfig(Config):
                 "queue": "periodic",
             }
         },
-        # execute batch every hour
+        # execute batch every minutes if there any
         "execute-batch": {
             "task": "task.scheduler.tasks.execute_transaction_batch",
             "schedule": crontab(),
@@ -117,6 +125,29 @@ class DevelopmentConfig(Config):
                 "queue": "periodic",
             }
         },
+        # for dev purpose we send every 5 minutes
+        "generate-afpi-report": {
+            "task": "task.scheduler.tasks.generate_afpi_report",
+            "schedule": crontab(minute="*/5"),
+            "options": {
+                "queue": "periodic",
+                "link": signature(
+                    "task.scheduler.tasks.send_afpi_report",
+                    args=(),
+                    kwargs={},
+                    queue="periodic",
+                    eta=tomorrow_morning_dev
+                )
+            }
+        },
+        # for dev purpose we send every 5 minutes
+        "generate-ojk-report": {
+            "task": "task.scheduler.tasks.generate_ojk_report",
+            "schedule": crontab(minute="*/5"),
+            "options": {
+                "queue": "periodic",
+            }
+        }
     }
 
 
@@ -204,14 +235,37 @@ class ProductionConfig(Config):
                 "queue": "periodic",
             }
         },
-        # execute batch every hour
+        # execute batch every minutes if there any
         "execute-batch": {
             "task": "task.scheduler.tasks.execute_transaction_batch",
-            "schedule": crontab(minute="*/60"),
+            "schedule": crontab(),
             "options": {
                 "queue": "periodic",
             }
         },
+        # generate AFPI Report every 18.00 and upload it next morning
+        "generate-afpi-report": {
+            "task": "task.scheduler.tasks.generate_afpi_report",
+            "schedule": crontab(hour="18", minute="0"),
+            "options": {
+                "queue": "periodic",
+                "link": signature(
+                    "task.scheduler.tasks.send_afpi_report",
+                    args=(),
+                    kwargs={},
+                    queue="periodic",
+                    eta=tomorrow_morning
+                )
+            }
+        },
+        # we trigger generate ojk report every 1 on each month
+        "generate-ojk-report": {
+            "task": "task.scheduler.tasks.generate_ojk_report",
+            "schedule": crontab(hour="0", minute="0", day_of_month="1"),
+            "options": {
+                "queue": "periodic",
+            }
+        }
     }
 
 

@@ -20,6 +20,7 @@ from app.api.models.transaction import PaymentEmbed, Transaction
 from app.api.models.borrower import Borrower
 from app.api.models.file import File, Article
 from app.api.models.batch import Schedule, TransactionQueue
+from app.api.models.report import RegulationReport, AfpiReport
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -378,7 +379,8 @@ def make_loan_request(setup_borrower,
     def _make_loan_request(overdue=0, tenor=15,
                            requested_loan_request=500000,
                            disburse_amount=477500, service_fee=22500,
-                           status="APPROVED"):
+                           status="APPROVED", list_of_status=[],
+                           payment_state_status="LANCAR"):
 
         random_no = random.randint(111111, 999999)
         random_va = "9889909611" + str(random_no)
@@ -386,7 +388,7 @@ def make_loan_request(setup_borrower,
         data = {
             "investment_id": setup_investment.id,
             "overdue": overdue,
-            "payment_state_status": "LANCAR",
+            "payment_state_status": payment_state_status,
             "product_id": setup_mocepat_product.id,
             "user_id": setup_borrower_user.id,
             "borrower_id": setup_borrower.id,
@@ -418,6 +420,7 @@ def make_loan_request(setup_borrower,
             "modanaku": {
                 "wallet_id": "modanaku-wallet-id"
             },
+            "list_of_status": list_of_status,
             "bank_accounts": [
                 {
                     "bank_id": setup_bni_bank.id,
@@ -502,7 +505,7 @@ def make_transaction():
             destination_id=destination_id,
             destination_type=destination_type,
             amount=amount,
-            transaction_type=transaction_type,
+            transaction_type=transaction_type
         )
 
         payment = PaymentEmbed()
@@ -938,3 +941,41 @@ def make_transaction_queue(setup_schedules, setup_investment_with_transaction):
         queue.commit()
         return queue
     return _make_transaction_queue
+
+
+@pytest.fixture(scope="module")
+def setup_regulation_report():
+    regulation_report = RegulationReport(
+        report_type="AFPI",
+    )
+    regulation_report.commit()
+    return regulation_report
+
+
+@pytest.fixture(scope="module")
+def setup_afpi_report(setup_regulation_report):
+    regulation_report = setup_regulation_report
+    data = {
+        "remaining_loan_amount": "500000",
+        "max_dpd": "0",
+        "npwp_no": "112233445566778",
+        "loan_amount": "500000",
+        "due_date": "20191225",
+        "current_dpd": "0",
+        "identity_no": "1471120607930002",
+        "borrower_id": "91017100027",
+        "borrower_type": "1",
+        "loan_id": "2891017100028",
+        "reported_date": "20191218",
+        "status": "O",
+        "disburse_date": "20191218",
+        "agreement_date": "20191218",
+        "quality": "1",
+        "borrower_name": "Rose Kim",
+        "p2p_id": "999999",
+        "regulation_report_id": regulation_report.id
+    }
+
+    report = AfpiReport(**data)
+    report.commit()
+    return regulation_report, report
