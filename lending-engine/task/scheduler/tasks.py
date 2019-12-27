@@ -442,7 +442,7 @@ class SchedulerTask(celery.Task):
             {
                 "st": "VERIFYING",
                 "ca": {
-                    "$gte": last_cut_off,
+                    #"$gte": last_cut_off,
                     "$lte": cut_off
                 }
             }
@@ -487,7 +487,7 @@ class SchedulerTask(celery.Task):
                         "$elemMatch": {
                             "$and": [
                                 {"ca": {
-                                    "$gte": last_cut_off,
+                                    #"$gte": last_cut_off,
                                     "$lte": cut_off
                                 }}
                             ]

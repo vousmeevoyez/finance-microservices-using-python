@@ -105,7 +105,7 @@ class DevelopmentConfig(Config):
         # we set auto cancel every midnight
         "auto-cancel-verifying-loan": {
             "task": "task.scheduler.tasks.auto_cancel_verifying_loan",
-            "schedule": crontab(hour=0, minute=0),
+            "schedule": crontab(hour=10, minute=15),
             "options": {
                 "queue": "periodic",
             }
@@ -113,7 +113,7 @@ class DevelopmentConfig(Config):
         # we set auto cancel every midnight
         "auto-cancel-approved-loan": {
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
-            "schedule": crontab(hour=0, minute=0),
+            "schedule": crontab(hour=10, minute=15),
             "options": {
                 "queue": "periodic",
             }
@@ -176,8 +176,7 @@ class ProductionConfig(Config):
     """ This is class for production configuration """
     DEBUG = False
 
-    MONGO_URI = Config.MONGO_PATH + "/" + Config.MONGO_DBNAME + "?replicaSet="\
-        + Config.MONGO_REPLICA_SET
+    MONGO_URI = Config.MONGO_PATH + "/" + Config.MONGO_DBNAME + "?replicaSet=" + Config.MONGO_REPLICA_SET
 
     CELERY_RESULT_BACKEND = "mongodb"
     CELERY_MONGODB_BACKEND_SETTINGS = {
