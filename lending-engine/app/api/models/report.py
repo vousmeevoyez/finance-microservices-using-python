@@ -31,6 +31,7 @@ class RegulationReport(BaseDocument):
     file_type = StrField(attribute="ft")
     file_url = StrField(attribute="fu")
     file_name = StrField(attribute="fn")
+    file_path = StrField(attribute="fp")
     list_of_status = ListField(
         EmbeddedField(StatusEmbed),
         attribute="lst",

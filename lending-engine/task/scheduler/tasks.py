@@ -434,16 +434,18 @@ class SchedulerTask(celery.Task):
     def auto_cancel_verifying_loan(self):
         """ auto cancel loan that not been approved after 24 hour """
         # we check is there any loan request have due date today
-        cut_off = datetime.now().replace(tzinfo=TIMEZONE, hour=12, minute=0)
-
-        last_cut_off = cut_off - timedelta(days=2)
+        now = datetime.utcnow()
+        local_now = TIMEZONE.localize(now)
+        # update to cut off
+        cut_off = local_now.replace(hour=12, minute=0)
+        cut_off_utc = cut_off.astimezone(pytz.utc)
 
         loan_requests = list(LoanRequest.collection.find(
             {
                 "st": "VERIFYING",
                 "ca": {
                     #"$gte": last_cut_off,
-                    "$lte": cut_off
+                    "$lte": cut_off_utc
                 }
             }
         ))
@@ -475,9 +477,11 @@ class SchedulerTask(celery.Task):
     def auto_cancel_approved_loan(self):
         """ auto cancel loan that not been disbursed after 24 hour """
         # we check is there any loan request have due date today
-        cut_off = datetime.now().replace(tzinfo=TIMEZONE, hour=12, minute=0)
-
-        last_cut_off = cut_off - timedelta(days=2)
+        now = datetime.utcnow()
+        local_now = TIMEZONE.localize(now)
+        # update to cut off
+        cut_off = local_now.replace(hour=12, minute=0)
+        cut_off_utc = cut_off.astimezone(pytz.utc)
 
         loan_requests = list(LoanRequest.collection.aggregate([
             {
@@ -488,7 +492,7 @@ class SchedulerTask(celery.Task):
                             "$and": [
                                 {"ca": {
                                     #"$gte": last_cut_off,
-                                    "$lte": cut_off
+                                    "$lte": cut_off_utc
                                 }}
                             ]
                         }
