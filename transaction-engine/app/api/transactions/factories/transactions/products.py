@@ -82,7 +82,6 @@ class BankTransferTransaction(DebitTransaction):
 
             ExternalTask().apply_external.s(
             ).set(queue="external"),
-
             # send callback
             UtilityTask().notify.si(
                 str(self.transaction.id)

@@ -11,7 +11,8 @@ from celery import signature
 
 TIMEZONE = pytz.timezone("Asia/Jakarta")
 local_now = TIMEZONE.localize(datetime.utcnow())
-tomorrow_morning = local_now.replace(hour=0, minute=0, second=1)
+tomorrow_morning = local_now.replace(hour=0, minute=0, second=1) + \
+        timedelta(days=1)
 # for testing purpose we mark it 2 minutes
 tomorrow_morning_dev = local_now + timedelta(minutes=15)
 
