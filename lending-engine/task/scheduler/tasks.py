@@ -431,7 +431,7 @@ class SchedulerTask(celery.Task):
         task_time_limit=WORKER["SOFT_LIMIT"],
         acks_late=WORKER["ACKS_LATE"],
     )
-    def auto_cancel_verifying_loan(self):
+    def auto_cancel_pending_loan(self):
         """ auto cancel loan that not been approved after 24 hour """
         # we check is there any loan request have due date today
         now = datetime.utcnow()
@@ -442,7 +442,7 @@ class SchedulerTask(celery.Task):
 
         loan_requests = list(LoanRequest.collection.find(
             {
-                "st": "VERIFYING",
+                "st": "PENDING",
                 "ca": {
                     #"$gte": last_cut_off,
                     "$lte": cut_off_utc

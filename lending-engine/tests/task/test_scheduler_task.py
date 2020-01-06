@@ -280,68 +280,68 @@ def test_calculate_late_fees_case3(setup_investment, setup_investor, make_loan_r
 
 
 @freeze_time("2019-12-02")
-def test_auto_cancel_verifying_loan(make_loan_request):
+def test_auto_cancel_pending_loan(make_loan_request):
     """ simulate loan that has been created in the morning but not approved so
     it should be cancelled on the same day """
     local_time = TIMEZONE.localize(
         datetime(year=2019, month=12, day=2, hour=9, minute=10)
     )
     utc_time = local_time.astimezone(pytz.UTC)
-    loan_request = make_loan_request(status="VERIFYING")
+    loan_request = make_loan_request(status="PENDING")
     loan_request.ca = utc_time
     loan_request.commit()
 
     # setup some record that have duedate of 25
-    SchedulerTask().auto_cancel_verifying_loan()
+    SchedulerTask().auto_cancel_pending_loan()
     loan_request = LoanRequest.find_one({"id": loan_request.id})
     assert loan_request.status == "CANCELLED"
 
 
 @freeze_time("2019-12-02")
-def test_auto_cancel_verifying_loan2(make_loan_request):
+def test_auto_cancel_pending_loan2(make_loan_request):
     """ simulate loan that has been created in the afternoon but not approved
     so it should be not cancelled today but next day"""
     local_time = TIMEZONE.localize(
         datetime(year=2019, month=12, day=2, hour=13, minute=10)
     )
     utc_time = local_time.astimezone(pytz.UTC)
-    loan_request = make_loan_request(status="VERIFYING")
+    loan_request = make_loan_request(status="PENDING")
     loan_request.ca = utc_time
     loan_request.commit()
 
     # setup some record that have duedate of 25
-    SchedulerTask().auto_cancel_verifying_loan()
+    SchedulerTask().auto_cancel_pending_loan()
     loan_request = LoanRequest.find_one({"id": loan_request.id})
-    assert loan_request.status == "VERIFYING"
+    assert loan_request.status == "PENDING"
 
 
 @freeze_time("2019-12-03")
-def test_auto_cancel_verifying_loan3(make_loan_request):
+def test_auto_cancel_pending_loan3(make_loan_request):
     """ simulate loan that has been created in the afternoon yesterday but not
     approved so it should be cancelled h+1"""
     local_time = TIMEZONE.localize(
         datetime(year=2019, month=12, day=2, hour=13, minute=10)
     )
     utc_time = local_time.astimezone(pytz.UTC)
-    loan_request = make_loan_request(status="VERIFYING")
+    loan_request = make_loan_request(status="PENDING")
     loan_request.ca = utc_time
     loan_request.commit()
 
     # setup some record that have duedate of 25
-    SchedulerTask().auto_cancel_verifying_loan()
+    SchedulerTask().auto_cancel_pending_loan()
     loan_request = LoanRequest.find_one({"id": loan_request.id})
     assert loan_request.status == "CANCELLED"
 
 
 @freeze_time("2019-12-02")
-def test_auto_cancel_verifying_loan4(make_loan_request):
+def test_auto_cancel_pending_loan4(make_loan_request):
     """ simulate loan that has been created in the morning and afternoon the
     one should be updated is the one in the morning"""
     local_time = TIMEZONE.localize(
         datetime(year=2019, month=12, day=2, hour=7, minute=10)
     )
     utc_time = local_time.astimezone(pytz.UTC)
-    morning_loan = make_loan_request(status="VERIFYING")
+    morning_loan = make_loan_request(status="PENDING")
     morning_loan.ca = utc_time
     morning_loan.commit()
 
@@ -349,17 +349,17 @@ def test_auto_cancel_verifying_loan4(make_loan_request):
         datetime(year=2019, month=12, day=2, hour=14, minute=10)
     )
     utc_time = local_time.astimezone(pytz.UTC)
-    afternoon_loan = make_loan_request(status="VERIFYING")
+    afternoon_loan = make_loan_request(status="PENDING")
     afternoon_loan.ca = utc_time
     afternoon_loan.commit()
 
-    SchedulerTask().auto_cancel_verifying_loan()
+    SchedulerTask().auto_cancel_pending_loan()
     morning_loan = LoanRequest.find_one({"id": morning_loan.id})
     assert morning_loan.status == "CANCELLED"
 
-    SchedulerTask().auto_cancel_verifying_loan()
+    SchedulerTask().auto_cancel_pending_loan()
     afternoon_loan = LoanRequest.find_one({"id": afternoon_loan.id})
-    assert afternoon_loan.status == "VERIFYING"
+    assert afternoon_loan.status == "PENDING"
 
 
 @freeze_time("2019-12-02")
