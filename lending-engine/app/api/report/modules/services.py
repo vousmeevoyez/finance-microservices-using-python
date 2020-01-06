@@ -36,12 +36,38 @@ class ReportServicesError(BaseError):
     """ raised when reporrt services error """
 
 
-def fetch_all_loans(regulation_report_id):
+def fetch_all_loans(regulation_report_id, start_time, end_time):
     # first we need to join loan and borrower and query everything
     loans_borrowers = list(LoanRequest.collection.aggregate([
         {
             "$match": {
-                "st": "DISBURSED"
+                "$or": [
+                    {
+                        "st": "DISBURSED"
+                    },
+                    {
+                        "$and": [
+                            {
+                                "st": "PAID",
+                                "pda": {
+                                    "$gte": start_time,
+                                    "$lte": end_time
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "$and": [
+                            {
+                                "st": "WRITEOFF",
+                                "ua": {
+                                    "$gte": start_time,
+                                    "$lte": end_time
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -110,7 +136,7 @@ def create_afpi_report_entry():
         )
         regulation_report.commit()
     # fetch all loans
-    loans = fetch_all_loans(regulation_report.id)
+    loans = fetch_all_loans(regulation_report.id, start_time, end_time)
     if loans == []:
         raise ReportServicesError
     # first we need to check whether this regulation report id has been

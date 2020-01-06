@@ -380,7 +380,9 @@ def make_loan_request(setup_borrower,
                            requested_loan_request=500000,
                            disburse_amount=477500, service_fee=22500,
                            status="APPROVED", list_of_status=[],
-                           payment_state_status="LANCAR"):
+                           payment_state_status="LANCAR",
+                           payment_date=date.today(),
+                           ua=datetime.utcnow()):
 
         random_no = random.randint(111111, 999999)
         random_va = "9889909611" + str(random_no)
@@ -396,7 +398,7 @@ def make_loan_request(setup_borrower,
             "tenor": tenor,
             "status": status,
             "requested_loan_request": requested_loan_request,
-            "payment_date": date.today(),
+            "payment_date": payment_date,
             "due_date": "2019-11-25T00:00:00.000Z",
             "upfront_fee": 0.3,
             "upfront_fee_type": "PERCENT",
@@ -420,6 +422,7 @@ def make_loan_request(setup_borrower,
             "modanaku": {
                 "wallet_id": "modanaku-wallet-id"
             },
+            "ua": ua,
             "list_of_status": list_of_status,
             "bank_accounts": [
                 {
