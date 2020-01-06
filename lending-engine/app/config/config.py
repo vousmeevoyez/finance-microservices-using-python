@@ -144,7 +144,7 @@ class DevelopmentConfig(Config):
         # for dev purpose we send every 5 minutes
         "generate-ojk-report": {
             "task": "task.scheduler.tasks.generate_ojk_report",
-            "schedule": crontab(minute="*/5"),
+            "schedule": crontab(minute="*/60"),
             "options": {
                 "queue": "periodic",
             }

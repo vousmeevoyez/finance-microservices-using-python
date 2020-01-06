@@ -176,14 +176,17 @@ class LoanBorrowerReportSchema(ma.Schema):
 
     def extract_disburse_date(self, obj):
         list_of_status = obj["lst"]
-        print(list_of_status)
         result = list(filter(
             lambda item: item["st"] == \
             'SEND_TO_MODANAKU_COMPLETED', list_of_status
         ))
-        disburse_date = result[0]["ca"]
-        disburse_date_string = disburse_date.strftime("%Y%m%d")
-        return disburse_date_string
+        try:
+            disburse_date = result[0]["ca"]
+        except IndexError:
+            print("no disburse date")
+        else:
+            disburse_date_string = disburse_date.strftime("%Y%m%d")
+            return disburse_date_string
 
 
     def calculate_remaining_loan_amount(self, obj):

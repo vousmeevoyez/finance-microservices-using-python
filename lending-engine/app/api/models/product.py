@@ -86,6 +86,7 @@ class Product(BaseDocument):
     max_salary_type = StrField(attribute="mlst")
     interests = EmbeddedField(InterestEmbed)
     freeze_period = IntField(attribute="fp")
+    product_code = StrField(attribute="pc")
 
     class Meta:
         collection_name = "lender_products"

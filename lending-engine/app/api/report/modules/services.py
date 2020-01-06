@@ -117,7 +117,7 @@ def create_afpi_report_entry():
     # we need to make every 24 hour we only have 1 report and update if we
     # found
     now = datetime.utcnow()
-    start_time = now.replace(hour=0, minute=0)
+    start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_time = now.replace(hour=23, minute=59)
 
     regulation_report = RegulationReport.find_one({
