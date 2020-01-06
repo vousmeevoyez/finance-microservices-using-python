@@ -103,9 +103,9 @@ class DevelopmentConfig(Config):
             }
         },
         # we set auto cancel every midnight
-        "auto-cancel-verifying-loan": {
-            "task": "task.scheduler.tasks.auto_cancel_verifying_loan",
-            "schedule": crontab(hour=10, minute=15),
+        "auto-cancel-pending-loan": {
+            "task": "task.scheduler.tasks.auto_cancel_pending_loan",
+            "schedule": crontab(hour=12, minute=0),
             "options": {
                 "queue": "periodic",
             }
@@ -113,7 +113,7 @@ class DevelopmentConfig(Config):
         # we set auto cancel every midnight
         "auto-cancel-approved-loan": {
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
-            "schedule": crontab(hour=10, minute=15),
+            "schedule": crontab(hour=12, minute=0),
             "options": {
                 "queue": "periodic",
             }
@@ -220,8 +220,8 @@ class ProductionConfig(Config):
             }
         },
         # we set auto cancel every midnight
-        "auto-cancel-verifying-loan": {
-            "task": "task.scheduler.tasks.auto_cancel_verifying_loan",
+        "auto-cancel-pending-loan": {
+            "task": "task.scheduler.tasks.auto_cancel_pending_loan",
             "schedule": crontab(hour=0, minute=0),
             "options": {
                 "queue": "periodic",
