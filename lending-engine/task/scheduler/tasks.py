@@ -220,7 +220,8 @@ class SchedulerTask(celery.Task):
                         {"_id": loan_request["_id"]},
                         {"$set": {
                             "st": loan_status,
-                            "psts": payment_status
+                            "psts": payment_status,
+                            "wda": today_datetime
                         }}
                     )
                 else:

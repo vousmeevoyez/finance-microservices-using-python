@@ -47,7 +47,7 @@ def test_fetch_all_loans_paid_only(make_loan_request, setup_regulation_report):
         list_of_status=[
             {"status": "SEND_TO_MODANAKU_COMPLETED"}
         ],
-        payment_date=now
+        payment_date=now.date()
     )
     results = fetch_all_loans(setup_regulation_report.id, start_time, end_time)
     assert results

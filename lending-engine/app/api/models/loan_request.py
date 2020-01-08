@@ -137,6 +137,7 @@ class LoanRequest(BaseBankDocument):
     investment_date = DateField(attribute="ida")
     requested_date = DateField(attribute="rd")
     modanaku = EmbeddedField(ModanakuEmbedded)
+    write_off_date = DateField(attribute="wda")
 
     class Meta:
         collection_name = "lender_loan_requests"

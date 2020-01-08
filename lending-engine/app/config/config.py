@@ -129,7 +129,7 @@ class DevelopmentConfig(Config):
         # for dev purpose we send every 5 minutes
         "generate-afpi-report": {
             "task": "task.scheduler.tasks.generate_afpi_report",
-            "schedule": crontab(minute="*/5"),
+            "schedule": crontab(),
             "options": {
                 "queue": "periodic",
                 "link": signature(

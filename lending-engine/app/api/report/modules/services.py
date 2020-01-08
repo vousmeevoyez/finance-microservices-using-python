@@ -46,26 +46,18 @@ def fetch_all_loans(regulation_report_id, start_time, end_time):
                         "st": "DISBURSED"
                     },
                     {
-                        "$and": [
-                            {
-                                "st": "PAID",
-                                "pda": {
-                                    "$gte": start_time,
-                                    "$lte": end_time
-                                }
-                            }
-                        ]
+                        "st": "PAID",
+                        "pda": {
+                            "$gte": start_time,
+                            "$lte": end_time
+                        }
                     },
                     {
-                        "$and": [
-                            {
-                                "st": "WRITEOFF",
-                                "ua": {
-                                    "$gte": start_time,
-                                    "$lte": end_time
-                                }
-                            }
-                        ]
+                        "st": "WRITEOFF",
+                        "wda": {
+                            "$gte": start_time,
+                            "$lte": end_time
+                        }
                     }
                 ]
             }
@@ -92,6 +84,7 @@ def fetch_all_loans(regulation_report_id, start_time, end_time):
                 "borrower.ln": 1,
                 "borrower.ktp.kn": 1,
                 "borrower.npwp.nn": 1,
+                "pda": 1,
                 "lar": 1,
                 "dd": 1,
                 "psts": 1,
@@ -101,6 +94,7 @@ def fetch_all_loans(regulation_report_id, start_time, end_time):
             }
         }
     ]))
+
     converted_data = []
     for loan_borrower in loans_borrowers:
         serialized = LoanBorrowerReportSchema().dump(loan_borrower)
