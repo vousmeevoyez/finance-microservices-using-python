@@ -375,7 +375,7 @@ class ReceiveInvestFeeCallback(BaseMultipleTrxCallback):
                 "source_type": "ESCROW",
                 "destination_id": str(investor.id),
                 "destination_type": "INVESTOR_RDL_ACC",
-                "amount": repayment_amount,
+                "amount": -repayment_amount,
                 "transaction_type": transaction_type,
             }
             update_record = {
