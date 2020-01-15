@@ -14,7 +14,7 @@ class TrxSchema(ma.Schema):
     source_type = fields.Str(required=True)
     destination_id = fields.Str(required=True)
     destination_type = fields.Str(required=True)
-    amount = fields.Float(required=True)
+    amount = fields.Decimal(required=True)
     transaction_type = fields.Str(required=True)
     reference_no = fields.Str()
 
