@@ -15,6 +15,12 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
+
 
         investor-worker:
                 image: lending-engine-services
@@ -26,6 +32,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         utility-worker:
                 image: lending-engine-services
@@ -37,6 +48,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         transaction-worker:
                 image: lending-engine-services
@@ -48,6 +64,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         investment-worker:
                 image: lending-engine-services
@@ -59,6 +80,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         va-worker:
                 image: lending-engine-services
@@ -70,6 +96,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         scheduler:
                 image: lending-engine-services
@@ -81,6 +112,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         scheduler-worker:
                 image: lending-engine-services
@@ -92,6 +128,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         rabbitmq:
                 env_file: .env
@@ -107,6 +148,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
 
         rdl-grpc:
@@ -116,6 +162,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
 networks:
   lending-engine-net:
