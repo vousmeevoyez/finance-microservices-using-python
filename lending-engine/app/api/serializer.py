@@ -7,6 +7,7 @@ from marshmallow import (
     fields,
     ValidationError,
     validates,
+    validates_schema,
     post_load
 )
 from app.api import ma
@@ -111,6 +112,15 @@ class BniRdlCallbackSchema(ma.Schema):
     journal_number = fields.Int(required=True, validate=cannot_be_blank)
     datetime_payment = fields.Str(required=True, validate=cannot_be_blank)
 
+    @validates("accounting_flag")
+    def validate_accounting_flag(self, flag):
+        """
+            function to validate accounting flag
+            args:
+                flag -- C / D
+        """
+        if flag != "C":
+            raise ValidationError("Only accept Credit Flag")
 
 class TransactionCallbackSchema(ma.Schema):
     """ this is schema for transaction callback """
