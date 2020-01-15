@@ -148,7 +148,7 @@ def test_callback_deposit_rdl(setup_client,
     data = {
         "p2p_id": BNI_RDL["COMPANY"],
         "account_number": setup_investor.bank_accounts[0].account_no,
-        "payment_amount": "50000",
+        "payment_amount": "50000.000",
         "accounting_flag": "C",
         "journal_number": "123456789",
         "datetime_payment": "2018-12-20 11:16:00",

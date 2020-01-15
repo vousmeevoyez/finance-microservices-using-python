@@ -75,7 +75,7 @@ class BNIRdlDepositCallback(Callback):
 
     def post(self):
         """ execute BNI Rdl Top up via services """
-        request_data = self.serialize(self.payload(raw=True))
+        request_data = self.serialize(self.payload(raw=True), load=True)
 
         current_app.logger.info("Request: {}".format(request_data))
         response = top_up_rdl(
