@@ -156,7 +156,7 @@ def test_callback_deposit_rdl(setup_client,
     # generate encrypted data using BNI encryption
     encrypted_data = encrypt(
         BNI_RDL["COMPANY"],
-        BNI_RDL["SECRET_API_KEY"],
+        BNI_RDL["CALLBACK_SECRET_KEY"],
         data
     )
 

@@ -45,7 +45,7 @@ class Config:
     CELERY_QUEUES = {
         "default": {"exchange": "default", "binding_key": "default"},
         "utility": {"exchange": "utility", "binding_key": "utility"},
-        "periodic": {"exchange": "periodic", "binding_key": "periodic"},
+        "scheduler": {"exchange": "scheduler", "binding_key": "scheduler"},
         "investor": {"exchange": "investor", "binding_key": "investor"},
         "virtual_account": {"exchange": "virtual_account", "binding_key":
                             "virtual_account"},
@@ -77,12 +77,12 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.calculate_overdues",
             "schedule": crontab(minute="*/5"),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
                 "link": signature(
                     "task.scheduler.tasks.calculate_late_fees",
                     args=(),
                     kwargs={},
-                    queue="periodic"
+                    queue="scheduler"
                 )
             }
         },
@@ -91,7 +91,7 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.remind_before_due_dates",
             "schedule": crontab(hour=8, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # we set sending notiifcation every 15 evening
@@ -99,7 +99,7 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.remind_after_due_dates",
             "schedule": crontab(hour=15, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # we set auto cancel every midnight
@@ -107,7 +107,7 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.auto_cancel_pending_loan",
             "schedule": crontab(hour=12, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # we set auto cancel every midnight
@@ -115,7 +115,7 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
             "schedule": crontab(hour=12, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # execute batch every minutes if there any
@@ -123,20 +123,20 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.execute_transaction_batch",
             "schedule": crontab(),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # for dev purpose we send every 5 minutes
         "generate-afpi-report": {
             "task": "task.scheduler.tasks.generate_afpi_report",
-            "schedule": crontab(),
+            "schedule": crontab(minute="*/60"),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
                 "link": signature(
                     "task.scheduler.tasks.send_afpi_report",
                     args=(),
                     kwargs={},
-                    queue="periodic",
+                    queue="scheduler",
                     eta=tomorrow_morning_dev
                 )
             }
@@ -146,7 +146,7 @@ class DevelopmentConfig(Config):
             "task": "task.scheduler.tasks.generate_ojk_report",
             "schedule": crontab(minute="*/60"),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         }
     }
@@ -194,12 +194,12 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.calculate_overdues",
             "schedule": crontab(minute=0, hour=0),  # daily at midnight
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
                 "link": signature(
                     "task.scheduler.tasks.calculate_late_fees",
                     args=(),
                     kwargs={},
-                    queue="periodic"
+                    queue="scheduler"
                 )
             }
         },
@@ -208,7 +208,7 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.remind_before_due_dates",
             "schedule": crontab(hour=8, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # we set sending notiifcation every 15 evening
@@ -216,7 +216,7 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.remind_after_due_dates",
             "schedule": crontab(hour=15, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # we set auto cancel every midnight
@@ -224,7 +224,7 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.auto_cancel_pending_loan",
             "schedule": crontab(hour=0, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # we set auto cancel every midnight
@@ -232,7 +232,7 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
             "schedule": crontab(hour=0, minute=0),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # execute batch every minutes if there any
@@ -240,7 +240,7 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.execute_transaction_batch",
             "schedule": crontab(),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         },
         # generate AFPI Report every 18.00 and upload it next morning
@@ -248,12 +248,12 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.generate_afpi_report",
             "schedule": crontab(hour="18", minute="0"),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
                 "link": signature(
                     "task.scheduler.tasks.send_afpi_report",
                     args=(),
                     kwargs={},
-                    queue="periodic",
+                    queue="scheduler",
                     eta=tomorrow_morning
                 )
             }
@@ -263,7 +263,7 @@ class ProductionConfig(Config):
             "task": "task.scheduler.tasks.generate_ojk_report",
             "schedule": crontab(hour="0", minute="0", day_of_month="1"),
             "options": {
-                "queue": "periodic",
+                "queue": "scheduler",
             }
         }
     }

@@ -1,5 +1,3 @@
-import random
-
 import grpc
 from bson import ObjectId
 
@@ -9,11 +7,8 @@ from celery.exceptions import (
     MaxRetriesExceededError
 )
 
-from app.api import (
-    celery,
-    sentry
-)
-
+from task.tasks import BaseTask
+from app.api import celery
 from app.api.models.base import StatusEmbed
 from app.api.models.investor import (
     Investor,
@@ -38,19 +33,8 @@ from task.investment.rpc.modanaku import (
 )
 
 
-class InvestmentTask(celery.Task):
+class InvestmentTask(BaseTask):
     """Abstract base class for all tasks in my app."""
-
-    def on_retry(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry at retry."""
-        sentry.captureException(exc)
-        super(InvestmentTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry."""
-        sentry.captureException(exc)
-        # end with
-        super(InvestmentTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
     @celery.task(
         bind=True,

@@ -20,7 +20,7 @@ investment-worker:
 
 transaction-worker:
 	celery worker -A task.worker.celery --loglevel=info --autoscale=4,2 -Q transaction -n transaction@%h
-periodic-worker:
-	celery worker -A task.worker.celery --loglevel=info --autoscale=4,2 -Q periodic -n periodic@%h
+scheduler-worker:
+	celery worker -A task.worker.celery --loglevel=info --autoscale=4,2 -Q scheduler -n scheduler@%h
 beat:
 	celery beat -A task.worker.celery --loglevel=info

@@ -8,9 +8,10 @@ from celery.exceptions import (
     MaxRetriesExceededError
 )
 
+from task.tasks import BaseTask
+
 from app.api import (
-    celery,
-    sentry
+    celery
 )
 from app.api.lib.helper import str_to_class
 from app.api.lib.utils import backoff
@@ -19,19 +20,8 @@ from app.api.models.base import StatusEmbed
 from app.config.worker import WORKER, HTTP
 
 
-class TransactionTask(celery.Task):
+class TransactionTask(BaseTask):
     """Abstract base class for all tasks in my app."""
-
-    def on_retry(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry at retry."""
-        sentry.captureException(exc)
-        super(TransactionTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry."""
-        sentry.captureException(exc)
-        # end with
-        super(TransactionTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
     @celery.task(
         bind=True,

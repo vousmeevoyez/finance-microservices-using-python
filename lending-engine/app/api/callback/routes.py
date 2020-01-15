@@ -69,7 +69,7 @@ class BNIRdlDepositCallback(Callback):
     """
 
     client_id = BNI_RDL["COMPANY"]
-    secret_key = BNI_RDL["SECRET_API_KEY"]
+    secret_key = BNI_RDL["CALLBACK_SECRET_KEY"]
 
     __serializer__ = BniRdlCallbackSchema()
 

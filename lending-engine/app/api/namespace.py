@@ -18,3 +18,7 @@ class InvestmentNamespace:
 
 class ReportNamespace:
     api = Namespace("report")
+
+
+class HealthNamespace:
+    api = Namespace("health")

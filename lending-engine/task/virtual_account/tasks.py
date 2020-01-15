@@ -1,5 +1,3 @@
-import random
-
 import grpc
 from bson import ObjectId
 
@@ -9,9 +7,10 @@ from celery.exceptions import (
     MaxRetriesExceededError
 )
 
+from task.tasks import BaseTask
+
 from app.api import (
-    celery,
-    sentry
+    celery
 )
 
 from app.api.lib.helper import str_to_class
@@ -25,19 +24,8 @@ from task.virtual_account.rpc.bni_va import (
 )
 
 
-class VirtualAccountTask(celery.Task):
+class VirtualAccountTask(BaseTask):
     """Abstract base class for all tasks related to virtual account """
-
-    def on_retry(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry at retry."""
-        sentry.captureException(exc)
-        super(VirtualAccountTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry."""
-        sentry.captureException(exc)
-        # end with
-        super(VirtualAccountTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
     @celery.task(
         bind=True,
