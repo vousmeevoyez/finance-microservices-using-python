@@ -17,7 +17,7 @@ def test_api_top_up(setup_client, setup_investor, setup_investor_wallet):
         "source_type": "INVESTOR_RDL_ACC",
         "destination_id": str(setup_investor.id),
         "destination_type": "INVESTOR",
-        "amount": 1000000,
+        "amount": "1000000.0000",
         "transaction_type": "TOP_UP_RDL",
         "reference_no": "00712312312"
     }

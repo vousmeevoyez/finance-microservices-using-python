@@ -5,6 +5,7 @@
 # pylint: disable=bad-whitespace
 # pylint: disable=import-error
 
+from decimal import Decimal
 from flask_restplus import reqparse
 
 
@@ -18,7 +19,7 @@ class TransactionRequestSchema:
     parser.add_argument("destination_id", type=str, required=True)
     parser.add_argument("destination_type", type=str, required=True)
     parser.add_argument("transaction_type", type=str, required=True)
-    parser.add_argument("amount", type=int, required=True)
+    parser.add_argument("amount", type=Decimal, required=True)
     parser.add_argument("reference_no", type=str)
 
 
