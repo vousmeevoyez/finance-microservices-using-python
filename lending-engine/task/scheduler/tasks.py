@@ -591,6 +591,16 @@ class SchedulerTask(BaseTask):
                     link=TransactionTask().map_bulk_transaction.s().set(queue="transaction")
                 )
 
+                for transaction in transactions:
+                    transactions = TransactionQueue.collection.update_one(
+                        {"_id": transaction["_id"]},
+                        {
+                            "$set": {
+                                "status": "SENDED"
+                            }
+                        }
+                    )
+
     @celery.task(
         bind=True,
         max_retries=int(WORKER["MAX_RETRIES"]),
