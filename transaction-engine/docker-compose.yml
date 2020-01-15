@@ -14,6 +14,11 @@ services:
                 networks:
                 - transaction-net
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         transaction-worker:
                 image: transaction-engine-services
@@ -22,6 +27,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - transaction-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         transaction-utils-worker:
                 image: transaction-engine-services
@@ -31,6 +41,11 @@ services:
                 networks:
                 - transaction-net
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         external-worker:
                 image: transaction-engine-services
@@ -40,6 +55,11 @@ services:
                 networks:
                 - transaction-net
                 - lending-engine-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
         trx-rabbitmq:
                 env_file: .env
@@ -55,6 +75,11 @@ services:
                 restart: unless-stopped
                 networks:
                 - transaction-net
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "100k"
+                    max-file: "10"
 
 networks:
   transaction-net:
