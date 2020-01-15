@@ -14,6 +14,7 @@ services:
                 networks:
                 - transaction-net
                 - lending-engine-net
+                - mongo-replicaset-net
                 logging:
                   driver: "json-file"
                   options:
@@ -27,6 +28,7 @@ services:
                 restart: unless-stopped
                 networks:
                 - transaction-net
+                - mongo-replicaset-net
                 logging:
                   driver: "json-file"
                   options:
@@ -41,6 +43,7 @@ services:
                 networks:
                 - transaction-net
                 - lending-engine-net
+                - mongo-replicaset-net
                 logging:
                   driver: "json-file"
                   options:
@@ -55,6 +58,7 @@ services:
                 networks:
                 - transaction-net
                 - lending-engine-net
+                - mongo-replicaset-net
                 logging:
                   driver: "json-file"
                   options:
@@ -84,4 +88,6 @@ services:
 networks:
   transaction-net:
   lending-engine-net:
+    external: true
+  mongo-replicaset-net:
     external: true
