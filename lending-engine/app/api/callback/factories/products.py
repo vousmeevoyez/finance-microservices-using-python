@@ -142,7 +142,7 @@ class BaseMultipleTrxCallback(BaseSingleTrxCallback):
         4. trigger sending from escrow to n modanaku (disbursements)
         (SEND_TO_MODANAKU_REQUESTED)
         5. after the transaction successfully completed we will get notified
-        via DisburseCallback (SEND_TO_INVESTMENT_COMPLETED)
+        via DisburseCallback (SEND_TO_MODANAKU_COMPLETED)
         6. trigger sending from escrow to profit (send upfront fee)
         (SEND_TO_PROFIT_REQUESTED)
         7. after the transaction successfully completed we will get notified
@@ -308,7 +308,7 @@ class InvestFeeCallback(BaseMultipleTrxCallback):
 
         for loan_request in loan_requests:
             trx_payload = {
-                "wallet_id": str(profit_wallet.id),
+                "wallet_id": str(escrow_wallet.id),
                 "source_id": str(profit_wallet.id),
                 "source_type": "PROFIT",
                 "destination_id": str(escrow_wallet.id),
