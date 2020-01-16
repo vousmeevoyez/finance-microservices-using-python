@@ -224,9 +224,9 @@ def create_random_loan_request():
         "due_date": borrower.work_info[0].payment_date,
         "upfront_fee": 0.3,
         "upfront_fee_type": "PERCENT",
-        "disburse_amount": 477500,
+        "disburse_amount": 460000,
         "loan_purpose": "Liburan",
-        "service_fee": 22500,
+        "service_fee": 40000,
         "note": "",
         "loan_counter": 0,
         "requested_date": datetime.utcnow(),
@@ -259,7 +259,18 @@ def create_random_investment(investor_id, loan_ids):
     loan_requests = []
     for loan_id in loan_ids:
         loan_requests.append(
-            {"loan_request_id": loan_id, "disburse_amount": 477500, "total_fee": 22500}
+            {
+                "loan_request_id": loan_id,
+                "disburse_amount": 460000,
+                "total_fee": 40000,
+                "fees": [
+                    {
+                        "profit_fee": 28000,
+                        "investor_fee": 12000
+                    }
+                ],
+                "investor_fee": "30"
+            }
         )
 
     data = {
