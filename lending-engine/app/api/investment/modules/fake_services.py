@@ -260,12 +260,12 @@ def create_random_investment(investor_id, loan_ids):
     total_amount = 0
     for loan_id in loan_ids:
 
-        loan_request = LoanRequest.find_one({"id": loan_id})
+        loan_request = LoanRequest.find_one({"id": ObjectId(loan_id)})
         total_amount += loan_request.requested_loan_request
 
         loan_requests.append(
             {
-                "loan_request_id": loan_id,
+                "loan_request_id": loan_request.id,
                 "disburse_amount": loan_request.disburse_amount,
                 "total_fee": loan_request.service_fee,
                 "fees": [
