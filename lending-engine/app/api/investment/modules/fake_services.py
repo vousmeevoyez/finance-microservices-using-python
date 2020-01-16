@@ -257,12 +257,17 @@ def create_random_loan_request():
 
 def create_random_investment(investor_id, loan_ids):
     loan_requests = []
+    total_amount = 0
     for loan_id in loan_ids:
+
+        loan_request = LoanRequest.find_one({"id": loan_id})
+        total_amount += loan_request.requested_loan_request
+
         loan_requests.append(
             {
                 "loan_request_id": loan_id,
-                "disburse_amount": 460000,
-                "total_fee": 40000,
+                "disburse_amount": loan_request.disburse_amount,
+                "total_fee": loan_request.service_fee,
                 "fees": [
                     {
                         "profit_fee": 28000,
@@ -275,9 +280,10 @@ def create_random_investment(investor_id, loan_ids):
 
     data = {
         "investor_id": investor_id,
-        "total_amount": 1000000,
+        "total_amount": total_amount,
         "loan_requests": loan_requests,
     }
     investment = Investment(**data)
     investment.commit()
-    return {"investment": investment.dump()}
+    print(investment.dump())
+    return {"investment": investment.id}
