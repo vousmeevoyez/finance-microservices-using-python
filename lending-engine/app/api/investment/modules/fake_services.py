@@ -286,4 +286,4 @@ def create_random_investment(investor_id, loan_ids):
     investment = Investment(**data)
     investment.commit()
     print(investment.dump())
-    return {"investment": investment.id}
+    return {"investment": str(investment.id)}
