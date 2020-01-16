@@ -11,7 +11,7 @@ from umongo.fields import (
     EmbeddedField,
     ListField,
     IntField,
-    BoolField
+    BoolField,
 )
 
 from app.api import instance
@@ -23,7 +23,7 @@ from app.api.models.base import (
     BaseBankDocument,
     BaseEmbeddedDocument,
     StatusEmbed,
-    TransactionStatusNotFound
+    TransactionStatusNotFound,
 )
 from app.api.models.borrower import Borrower
 from app.api.lib.core.exceptions import BaseError
@@ -97,19 +97,15 @@ class LoanRequest(BaseBankDocument):
     credit_score = IntField(attribute="cs")
     grade = StrField(attribute="gr")
     tnc = EmbeddedField(TermConditionEmbed)
-    status = StrField(default="VERIFYING", attribute="st")  #|PENDING | APPROVED | REJECTED
+    status = StrField(
+        default="VERIFYING", attribute="st"
+    )  # |PENDING | APPROVED | REJECTED
     requested_loan_request = DecimalField(attribute="lar")
     total_amount = DecimalField(attribute="ta")
-    payment_states = ListField(EmbeddedField(PaymentStateEmbed),
-                               attribute="pst")
-    payment_schedules = ListField(EmbeddedField(PaymentScheduleEmbed),
-                                  attribute="psc")
-    loan_repayments = ListField(
-        EmbeddedField(LoanRepaymentEmbed),
-        attribute="lrs"
-    )
-    approvals = ListField(EmbeddedField(ApprovalEmbed),
-                          attribute="app")
+    payment_states = ListField(EmbeddedField(PaymentStateEmbed), attribute="pst")
+    payment_schedules = ListField(EmbeddedField(PaymentScheduleEmbed), attribute="psc")
+    loan_repayments = ListField(EmbeddedField(LoanRepaymentEmbed), attribute="lrs")
+    approvals = ListField(EmbeddedField(ApprovalEmbed), attribute="app")
     payroll_date = DateField(attribute="pd")
     due_date = DateField(attribute="dd")
     tenor = IntField(attribute="te")
@@ -124,8 +120,7 @@ class LoanRequest(BaseBankDocument):
     date_transfer = DateField(attribute="dt")
     transfer_by = ObjectIdField(attribute="tb")
     status_transfer = StrField(attribute="stt")
-    late_fee_logs = ListField(EmbeddedField(LateFeeEmbed),
-                              attribute="lateFeeLog")
+    late_fee_logs = ListField(EmbeddedField(LateFeeEmbed), attribute="lateFeeLog")
     loan_request_code = StrField(attribute="lrc")
     overdue = IntField(attribute="ov")
     loan_purpose = StrField(attribute="lp")
@@ -163,14 +158,16 @@ class LoanRequest(BaseBankDocument):
 
     @staticmethod
     def get_by_va(account_no):
-        loan_request = LoanRequest.find({
-            "bank_accounts": {
-                "$elemMatch": {
-                    "account_no": account_no,
-                    "account_type": "VIRTUAL_ACCOUNT"
+        loan_request = LoanRequest.find(
+            {
+                "bank_accounts": {
+                    "$elemMatch": {
+                        "account_no": account_no,
+                        "account_type": "VIRTUAL_ACCOUNT",
+                    }
                 }
             }
-        })
+        )
         try:
             return list(loan_request)[0].dump()
         except IndexError:
@@ -178,53 +175,47 @@ class LoanRequest(BaseBankDocument):
 
     @staticmethod
     def get_with_product_info(matcher):
-        loan_requests = LoanRequest.collection.aggregate([
-            {
-                "$match": matcher
-            },
-            {
-                "$lookup": {
-                    "from": "lender_products",
-                    "localField": "product_id",
-                    "foreignField": "_id",
-                    "as": "product",
-                }
-            },
-            {
-                "$unwind": "$product"
-            }
-        ])
+        loan_requests = LoanRequest.collection.aggregate(
+            [
+                {"$match": matcher},
+                {
+                    "$lookup": {
+                        "from": "lender_products",
+                        "localField": "product_id",
+                        "foreignField": "_id",
+                        "as": "product",
+                    }
+                },
+                {"$unwind": "$product"},
+            ]
+        )
         loan_requests = list(loan_requests)
         return loan_requests
 
     @staticmethod
     def get_with_product_investor(matcher):
-        loan_requests = LoanRequest.collection.aggregate([
-            {
-                "$match": matcher
-            },
-            {
-                "$lookup": {
-                    "from": "lender_products",
-                    "localField": "product_id",
-                    "foreignField": "_id",
-                    "as": "product",
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "lender_investors",
-                    "localField": "investor_id",
-                    "foreignField": "_id",
-                    "as": "investor",
-                }
-            },
-            {
-                "$unwind": "$product"
-            },
-            {
-                "$unwind": "$investor"
-            }
-        ])
+        loan_requests = LoanRequest.collection.aggregate(
+            [
+                {"$match": matcher},
+                {
+                    "$lookup": {
+                        "from": "lender_products",
+                        "localField": "product_id",
+                        "foreignField": "_id",
+                        "as": "product",
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "lender_investors",
+                        "localField": "investor_id",
+                        "foreignField": "_id",
+                        "as": "investor",
+                    }
+                },
+                {"$unwind": "$product"},
+                {"$unwind": "$investor"},
+            ]
+        )
         loan_requests = list(loan_requests)
         return loan_requests

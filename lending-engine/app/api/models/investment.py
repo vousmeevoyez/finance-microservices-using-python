@@ -9,17 +9,13 @@ from umongo.fields import (
     DecimalField,
     ListField,
     EmbeddedField,
-    IntField
+    IntField,
 )
 
 from app.api import instance
 
 # shared models
-from app.api.models.base import (
-    BaseEmbeddedDocument,
-    BaseBankDocument,
-    StatusEmbed
-)
+from app.api.models.base import BaseEmbeddedDocument, BaseBankDocument, StatusEmbed
 from app.api.models.loan_request import LoanRequest
 from app.api.lib.core.exceptions import BaseError
 
@@ -64,14 +60,16 @@ class Investment(BaseBankDocument):
 
     @staticmethod
     def get_by_va(account_no):
-        investment = Investment.find({
-            "bank_accounts": {
-                "$elemMatch": {
-                    "account_no": account_no,
-                    "account_type": "VIRTUAL_ACCOUNT"
+        investment = Investment.find(
+            {
+                "bank_accounts": {
+                    "$elemMatch": {
+                        "account_no": account_no,
+                        "account_type": "VIRTUAL_ACCOUNT",
+                    }
                 }
             }
-        })
+        )
         try:
             return list(investment)[0].dump()
         except IndexError:
@@ -79,13 +77,9 @@ class Investment(BaseBankDocument):
 
     @staticmethod
     def get_by_loan_request(loan_request_id):
-        investment = Investment.find({
-            "lr": {
-                "$elemMatch": {
-                    "loanRequest_id": ObjectId(loan_request_id),
-                }
-            }
-        })
+        investment = Investment.find(
+            {"lr": {"$elemMatch": {"loanRequest_id": ObjectId(loan_request_id)}}}
+        )
         try:
             return list(investment)[0].dump()
         except IndexError:
@@ -98,10 +92,8 @@ class Investment(BaseBankDocument):
                 {
                     "$match": {
                         "lr": {
-                            "$elemMatch": {"$and": [{
-                                "loanRequest_id": ObjectId(_id)
-                            }]}
-                        },
+                            "$elemMatch": {"$and": [{"loanRequest_id": ObjectId(_id)}]}
+                        }
                     }
                 },
                 {
@@ -111,9 +103,9 @@ class Investment(BaseBankDocument):
                                 "input": "$lr",
                                 "as": "lr",
                                 "cond": {
-                                    "$and": [{
-                                        "$eq": ["$$lr.loanRequest_id", ObjectId(_id)]
-                                    }]
+                                    "$and": [
+                                        {"$eq": ["$$lr.loanRequest_id", ObjectId(_id)]}
+                                    ]
                                 },
                             }
                         }

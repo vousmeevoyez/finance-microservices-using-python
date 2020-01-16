@@ -12,7 +12,7 @@ from flask import current_app
 
 from app.api.lib.core.exceptions import BaseError
 from app.api.models.user import User
-from app.api.models.investor import Investor
+from app.api.models.investor import Investor, InvestorRdl
 
 
 class ServicesError(BaseError):
@@ -46,18 +46,20 @@ def create_random_investor():
     fees = []
     for product in products:
         interest = product["interests"]
-        fees.append({
-            "product_id": product["_id"],
-            "late_fee": interest["lf"],
-            "upfront_fee": interest["uf"],
-            "upfront_fee_type": interest["ut"],
-            "penalty_fee": interest["pf"],
-            "penalty_fee_type": interest["pft"],
-            "service_fee": interest["sf"],
-            "service_fee_type": interest["sft"],
-            "admin_fee": interest["adf"],
-            "admin_fee_type": interest["adft"],
-        })
+        fees.append(
+            {
+                "product_id": product["_id"],
+                "late_fee": interest["lf"],
+                "upfront_fee": interest["uf"],
+                "upfront_fee_type": interest["ut"],
+                "penalty_fee": interest["pf"],
+                "penalty_fee_type": interest["pft"],
+                "service_fee": interest["sf"],
+                "service_fee_type": interest["sft"],
+                "admin_fee": interest["adf"],
+                "admin_fee_type": interest["adft"],
+            }
+        )
 
     data = {
         "user_id": user.id,
@@ -102,13 +104,53 @@ def create_random_investor():
         "approver_info": {
             "reason_id": ObjectId("7c6519967d3aa0cae0985325"),
             "message": "",
-            "approver_id": ObjectId("5d12da2baba97641c806baac")
+            "approver_id": ObjectId("5d12da2baba97641c806baac"),
         },
-        "approvals": [{
-            "status": "PENDING"
-        }],
-        "fees": fees
+        "approvals": [{"status": "PENDING"}],
+        "fees": fees,
     }
     investor = Investor(**data)
     investor.commit()
+
+    rdl_data = {
+        "investor_id": investor.id,
+        "address_kecamatan": investor["address"]["kecamatan"],
+        "address_kelurahan": investor["address"]["kelurahan"],
+        "address_rt_rw_perum": "113/123",
+        "address_street": "1312313",
+        "birth_date": "15061971",
+        "birth_place": "131123123",
+        "branch_opening": "0259",
+        "country": "ID",
+        "education": "04",
+        "email": investor["email"],
+        "fax": "",
+        "fax_ext": "",
+        "first_name": investor["first_name"],
+        "gender": "M",
+        "home_phone": "11317659",
+        "home_phone_ext": "0853",
+        "id_expire_date": "01012098",
+        "id_issuing_city": "jakarta barat",
+        "id_number": investor["ktp"]["no"],
+        "is_married": "L",
+        "job_code": "01",
+        "last_name": investor["last_name"],
+        "middle_name": investor["middle_name"],
+        "mobile_phone": investor["mobile_phone"],
+        "mobile_phone_ext": "0853",
+        "monthly_income": "8000000",
+        "mother_maiden_name": "asadsdasd",
+        "nationality": "ID",
+        "npwp_no": investor["npwp"]["npwp_no"],
+        "npwp_option": "1",
+        "office_phone": "11317659",
+        "office_phone_ext": "0853",
+        "religion": "5",
+        "title": "01",
+        "zip_code": "33512",
+    }
+
+    investor_rdl = InvestorRdl(**rdl_data)
+    investor_rdl.commit()
     return investor, user

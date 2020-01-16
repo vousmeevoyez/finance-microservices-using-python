@@ -8,7 +8,7 @@ from umongo.fields import (
     DateTimeField,
     ObjectIdField,
     IntField,
-    StrField
+    StrField,
 )
 
 from app.api import instance
@@ -41,6 +41,7 @@ class BaseDocument(Document):
 @instance.register
 class BankAccEmbed(BaseEmbeddedDocument):
     """ shared bank account embedded models """
+
     bank_id = ObjectIdField(attribute="bid")
     bank_name = StrField(attribute="bn")
     account_no = StrField(attribute="ano")
@@ -52,6 +53,7 @@ class BankAccEmbed(BaseEmbeddedDocument):
 @instance.register
 class StatusEmbed(BaseEmbeddedDocument):
     """ shared status embedded models """
+
     transaction_id = ObjectIdField()
     queue_id = ObjectIdField()
     status = StrField(attribute="st")
@@ -60,18 +62,10 @@ class StatusEmbed(BaseEmbeddedDocument):
 
 @instance.register
 class BaseBankDocument(BaseDocument):
-    status = StrField(
-        attribute="st"
-    )
-    bank_accounts = ListField(
-        EmbeddedField(BankAccEmbed),
-        attribute="ba",
-        default=list
-    )
+    status = StrField(attribute="st")
+    bank_accounts = ListField(EmbeddedField(BankAccEmbed), attribute="ba", default=list)
     list_of_status = ListField(
-        EmbeddedField(StatusEmbed),
-        attribute="lst",
-        default=list
+        EmbeddedField(StatusEmbed), attribute="lst", default=list
     )
 
     class Meta:
@@ -97,23 +91,14 @@ class BaseBankDocument(BaseDocument):
 
         result = self.collection.aggregate(
             [
-                {
-                    "$match": {
-                        "_id": _id,
-                        "ba": {
-                            "$elemMatch": {"$and": matchers}
-                        },
-                    }
-                },
+                {"$match": {"_id": _id, "ba": {"$elemMatch": {"$and": matchers}}}},
                 {
                     "$project": {
                         "ba": {
                             "$filter": {
                                 "input": "$ba",
                                 "as": "ba",
-                                "cond": {
-                                    "$and": projections
-                                },
+                                "cond": {"$and": projections},
                             }
                         }
                     }
@@ -129,15 +114,7 @@ class BaseBankDocument(BaseDocument):
         # generate matcher and projection here
         result = self.collection.aggregate(
             [
-                {
-                    "$match": {
-                        "ba": {
-                            "$elemMatch": {"$and": [{
-                                "_id": ObjectId(_id)
-                            }]}
-                        },
-                    }
-                },
+                {"$match": {"ba": {"$elemMatch": {"$and": [{"_id": ObjectId(_id)}]}}}},
                 {
                     "$project": {
                         "ba": {
@@ -145,9 +122,7 @@ class BaseBankDocument(BaseDocument):
                                 "input": "$ba",
                                 "as": "ba",
                                 "cond": {
-                                    "$and": [{
-                                        "$eq": ["$$ba._id", ObjectId(_id)]
-                                    }]
+                                    "$and": [{"$eq": ["$$ba._id", ObjectId(_id)]}]
                                 },
                             }
                         }
@@ -162,22 +137,20 @@ class BaseBankDocument(BaseDocument):
     def get_by_transaction(self, transaction_id):
         """ common inteface for all base document that store status """
         # generate matcher and projection here
-        result = self.collection.aggregate([
+        result = self.collection.aggregate(
+            [
                 {
                     "$match": {
                         "lst": {
                             "$elemMatch": {
                                 "$and": [{"transaction_id": ObjectId(transaction_id)}]
                             }
-                        },
+                        }
                     }
                 },
-                {
-                    "$project": {
-                        "_id": 1
-                    }
-                }
-        ])
+                {"$project": {"_id": 1}},
+            ]
+        )
         lists = list(result)
         try:
             transaction = lists[0]["_id"]
@@ -188,22 +161,20 @@ class BaseBankDocument(BaseDocument):
     def get_by_transactions(self, transaction_id):
         """ common inteface for one trx id to multiple trx """
         # generate matcher and projection here
-        result = self.collection.aggregate([
+        result = self.collection.aggregate(
+            [
                 {
                     "$match": {
                         "lst": {
                             "$elemMatch": {
                                 "$and": [{"transaction_id": ObjectId(transaction_id)}]
                             }
-                        },
+                        }
                     }
                 },
-                {
-                    "$project": {
-                        "_id": 1
-                    }
-                }
-        ])
+                {"$project": {"_id": 1}},
+            ]
+        )
         lists = list(result)
         if lists == []:
             raise TransactionStatusNotFound

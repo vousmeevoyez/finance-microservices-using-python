@@ -13,15 +13,11 @@ from umongo.fields import (
     DateField,
     IntField,
     BoolField,
-    ListField
+    ListField,
 )
 
 from app.api import instance
-from app.api.models.base import (
-    BaseDocument,
-    BaseEmbeddedDocument,
-    BankAccEmbed
-)
+from app.api.models.base import BaseDocument, BaseEmbeddedDocument, BankAccEmbed
 from app.api.lib.core.exceptions import BaseError
 
 
@@ -49,8 +45,7 @@ class FeeEmbed(BaseEmbeddedDocument):
 class InterestEmbed(BaseEmbeddedDocument):
     min_tenor = IntField(attribute="mit")
     max_tenor = IntField(attribute="mat")
-    loan_amounts = ListField(EmbeddedField(LoanAmountEmbed),
-                             attribute="loanAmounts")
+    loan_amounts = ListField(EmbeddedField(LoanAmountEmbed), attribute="loanAmounts")
     investor_fee = DecimalField(attribute="if")
     investor_fee_type = StrField(attribute="ift")
     profit_fee = DecimalField(attribute="af")

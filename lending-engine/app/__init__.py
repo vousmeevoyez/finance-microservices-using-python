@@ -12,6 +12,7 @@ from app.api.callback import api as callback_ns
 from app.api.report import api as report_ns
 from app.api.health import api as health_ns
 
+
 class CustomApi(Api):
     """ Custom API Classs """
 
@@ -38,6 +39,7 @@ class CustomApi(Api):
             data = to_dict()
 
         return self.make_response(data, code)
+
 
 blueprint = Blueprint("api", __name__)
 # intialize API

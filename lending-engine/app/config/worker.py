@@ -12,7 +12,7 @@ RPC = {
     "BNI_RDL": os.getenv("BNI_RDL_RPC_URL") or "127.0.0.1:5001",
     "BNI_OPG": os.getenv("BNI_OPG_RPC_URL") or "127.0.0.1:5001",
     "BNI_VA": os.getenv("BNI_VA_RPC_URL") or "127.0.0.1:5001",
-    "MODANAKU": os.getenv("MODANAKU_RPC_URL") or "127.0.0.1:5001"
+    "MODANAKU": os.getenv("MODANAKU_RPC_URL") or "127.0.0.1:5001",
 }
 
 HTTP = {
@@ -20,7 +20,7 @@ HTTP = {
         "BASE_URL": os.getenv("TRANSACTION_ENGINE_URL") or "http://127.0.0.1:5001",
         "API": {
             "CREATE": "/api/v1/transaction/",
-            "BULK_CREATE": "/api/v1/transaction/bulk"
-        }
+            "BULK_CREATE": "/api/v1/transaction/bulk",
+        },
     }
 }

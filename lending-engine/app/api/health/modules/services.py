@@ -95,7 +95,7 @@ class HealthServices:
         return round(score / length * 100, 1)
 
     def _snake_to_camel(self, word):
-        return ''.join(x.capitalize() or '_' for x in word.split('_'))
+        return "".join(x.capitalize() or "_" for x in word.split("_"))
 
     def _check_worker(self):
         """ method to check all worker that we connect """

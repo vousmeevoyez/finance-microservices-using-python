@@ -11,12 +11,11 @@ from app.api.callback.factories.products import (
     DisburseCallback,
     InvestFeeCallback,
     ReceiveInvestFeeCallback,
-    InvestRepaymentCallback
+    InvestRepaymentCallback,
 )
 
 
 class CallbackInfo:
-
     def __init__(self, transaction_id, transaction_type, status):
         self.transaction_id = transaction_id
         self.transaction_type = transaction_type

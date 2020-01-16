@@ -596,7 +596,7 @@ class SchedulerTask(BaseTask):
                         {"_id": transaction["_id"]},
                         {
                             "$set": {
-                                "status": "SENDED"
+                                "status": "SENT"
                             }
                         }
                     )

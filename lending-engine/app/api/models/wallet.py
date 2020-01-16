@@ -10,6 +10,7 @@ from app.api.models.base import BaseBankDocument
 @instance.register
 class Wallet(BaseBankDocument):
     """ Represent Object for maintaning balance """
+
     user_id = ObjectIdField()
     balance = DecimalField(default=0)
     label = StrField()

@@ -72,22 +72,15 @@ def create_random_borrower():
             "length_of_stay_validation": False,
             "residency_status": "Pribadi",
             "residency_status_validation": False,
-            "zip_code_validation": True
+            "zip_code_validation": True,
         },
-        "ktp": {
-            "no": "1471120607930002",
-            "validation": True
-        },
-        "npwp": {
-            "no": str(npwp_no),
-            "validation": True
-        },
+        "ktp": {"no": "1471120607930002", "validation": True},
+        "npwp": {"no": str(npwp_no), "validation": True},
         "work_info": [
             {
                 "basic_salary": 10000000,
                 "employee_no": "1112223334445",
-                "payslip": {
-                },
+                "payslip": {},
                 "address": {
                     "street": "Benhil No 101",
                     "kelurahan": "Tebet Timur",
@@ -100,7 +93,7 @@ def create_random_borrower():
                     "kelurahan_validation": True,
                     "province_validation": True,
                     "street_validation": True,
-                    "zip_code_validation": True
+                    "zip_code_validation": True,
                 },
                 "company_id": "88JeQUSRUaEPwR9i9fJEBF",
                 "company_name": "pt baru banget",
@@ -109,12 +102,9 @@ def create_random_borrower():
                 "position": "Assistant Manager",
                 "employment_status": "Permanent",
                 "work_date_start": faker.date_this_decade(
-                    before_today=True,
-                    after_today=False
+                    before_today=True, after_today=False
                 ),
-                "payment_date": faker.future_date(
-                    end_date="+14d", tzinfo=None
-                ),
+                "payment_date": faker.future_date(end_date="+14d", tzinfo=None),
                 "employee_id": "KQzTLbiH23vKuSKtykuFde",
                 "basic_salary_validation": True,
                 "contract_end_date_validation": False,
@@ -128,7 +118,7 @@ def create_random_borrower():
                     "overtime": "0",
                     "unpaid": "0",
                     "working_period": "4",
-                }
+                },
             }
         ],
         "user_id": user.id,
@@ -159,7 +149,7 @@ def create_random_borrower():
                 "relationship_validation": False,
                 "relationship": "Sepupu",
                 "index": "emergencyContact_3",
-            }
+            },
         ],
         "borrower_code": str(borrower_code),
         "age": 26,
@@ -215,12 +205,10 @@ def create_random_loan_request():
     loan_request_code = random.randint(11111111, 9999999999)
     # find products!
     product = current_app.db.lender_products.find_one({"pn": "Mocepat"})
-    tnc = current_app.db.lender_files.find_one({
-        "ft": "terms",
-    })
-    bank = current_app.db.lender_banks.find_one({
-        "bna": "PT BANK NEGARA INDONESIA 1946 (Persero) Tbk",
-    })
+    tnc = current_app.db.lender_files.find_one({"ft": "terms"})
+    bank = current_app.db.lender_banks.find_one(
+        {"bna": "PT BANK NEGARA INDONESIA 1946 (Persero) Tbk"}
+    )
 
     data = {
         "overdue": 0,
@@ -248,13 +236,8 @@ def create_random_loan_request():
         "late_fee_logs": [],
         "credit_score": credit_score,
         "grade": grade,
-        "tnc": {
-            "is_agreed": True,
-            "file_id": tnc["_id"]
-        },
-        "modanaku": {
-            "wallet_id": "31ec22c4-dcf4-4679-a358-faa3ab832fda"
-        },
+        "tnc": {"is_agreed": True, "file_id": tnc["_id"]},
+        "modanaku": {"wallet_id": "31ec22c4-dcf4-4679-a358-faa3ab832fda"},
         "bank_accounts": [
             {
                 "account_no": "9889909694513183",
@@ -262,12 +245,10 @@ def create_random_loan_request():
                 "bank_name": "BNI",
                 "account_name": "EMPLOYEE VA",
                 "label": "MODANAKU",
-                "bank_id": bank["_id"]
+                "bank_id": bank["_id"],
             }
         ],
-        "approvals": [{
-            "status": "PENDING"
-        }]
+        "approvals": [{"status": "PENDING"}],
     }
     loan_request = LoanRequest(**data)
     loan_request.commit()
@@ -277,16 +258,14 @@ def create_random_loan_request():
 def create_random_investment(investor_id, loan_ids):
     loan_requests = []
     for loan_id in loan_ids:
-        loan_requests.append({
-            "loan_request_id": loan_id,
-            "disburse_amount": 477500,
-            "total_fee": 22500
-        })
+        loan_requests.append(
+            {"loan_request_id": loan_id, "disburse_amount": 477500, "total_fee": 22500}
+        )
 
     data = {
         "investor_id": investor_id,
         "total_amount": 1000000,
-        "loan_requests": loan_requests
+        "loan_requests": loan_requests,
     }
     investment = Investment(**data)
     investment.commit()

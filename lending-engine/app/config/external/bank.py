@@ -14,12 +14,10 @@ BNI_ECOLLECTION = {
 BNI_RDL = {
     "COMPANY": os.getenv("BNI_RDL_COMPANY") or "b4c71336-f68d-49b5-969d-1533de629f61",
     "CALLBACK_SECRET_KEY": os.getenv("BNI_RDL_CALLBACK_SECRET_KEY")
-    or "0ee540db-7cfb-48c7-9228-47068031d3f8"
+    or "0ee540db-7cfb-48c7-9228-47068031d3f8",
 }
 
-MODANAKU = {
-    "API_KEY": os.getenv("MODANAKU_API_KEY") or "modanaku-api-key"
-}
+MODANAKU = {"API_KEY": os.getenv("MODANAKU_API_KEY") or "modanaku-api-key"}
 
 # MASTER ACCOUNT
 MASTER_ACCOUNT = {
@@ -31,8 +29,7 @@ MASTER_ACCOUNT = {
     },
     "ESCROW_VA": {
         "account_name": os.environ.get("ESCROW_VA_ACC_NAME") or "PT Amanah Escrow",
-        "account_type": os.environ.get("ESCROW_VA_ACC_TYPE") or
-        "VIRTUAL_ACCOUNT",
+        "account_type": os.environ.get("ESCROW_VA_ACC_TYPE") or "VIRTUAL_ACCOUNT",
         "bank_name": os.environ.get("ESCROW_VA_BANK_NAME") or "BNI",
     },
     "PROFIT": {
@@ -40,5 +37,5 @@ MASTER_ACCOUNT = {
         "account_no": os.environ.get("PROFIT_ACC_NO") or "0115471119",
         "account_type": os.environ.get("PROFIT_ACC_TYPE") or "BANK_ACCOUNT",
         "bank_name": os.environ.get("PROFIT_BANK_NAME") or "BNI",
-    }
+    },
 }

@@ -8,7 +8,7 @@ from umongo.fields import (
     DateTimeField,
     ObjectIdField,
     IntField,
-    StrField
+    StrField,
 )
 
 from app.api import instance
@@ -18,6 +18,7 @@ from app.api.models.base import BaseDocument
 @instance.register
 class Bank(BaseDocument):
     """ shared bank account embedded models """
+
     bank_name = StrField(attribute="bna")
     interbank_code = StrField(attribute="ic")
     clearing_code = StrField(attribute="cc")

@@ -22,10 +22,7 @@ class InvestorRoutes(Routes):
 
     def post(self):
         investor, user = create_random_investor()
-        return {
-            "investor": investor.dump(),
-            "user": user.dump()
-        }
+        return {"investor": investor.dump(), "user": user.dump()}
 
 
 @api.route("/<string:investor_id>/approve/")
@@ -34,6 +31,7 @@ class InvestorApproveRoutes(Routes):
         Approve Investor
         /investor-id/approve/
     """
+
     def post(self, investor_id):
         """ sending background task to approve investor """
         response = approve_investor(investor_id)

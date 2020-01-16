@@ -427,9 +427,9 @@ def test_reminder_after_due_date(make_loan_request):
     # setup some record that have duedate of 25
     SchedulerTask().remind_after_due_dates()
 
-'''
+
 @freeze_time("06:00:59")  # in utc is 13.00
-def test_execute_transaction_batch(make_transaction_queue):
+def test_execute_upfront_fee_transaction_batch(make_transaction_queue):
     """ simulate executing schedules """
     # create a transaction queue that already queued 2 hours ago
     queue_at = datetime.utcnow() - timedelta(hours=2)
@@ -437,9 +437,14 @@ def test_execute_transaction_batch(make_transaction_queue):
 
     # setup some record that have duedate of 25
     SchedulerTask().execute_transaction_batch()
-'''
+
+    # make sure the task is updated
+    queue = TransactionQueue.find_one({"id": queue.id})
+    assert queue.status == "SENT"
+
+
 @freeze_time("12:00:59")  # in utc is 13.00
-def test_execute_transaction_batch2(make_transaction_queue):
+def test_execute_upfront_fee_transaction_batch2(make_transaction_queue):
     """ simulate executing schedules """
     # create a transaction queue that already queued 2 hours ago
     queue_at = datetime.utcnow() - timedelta(hours=2)
@@ -447,6 +452,54 @@ def test_execute_transaction_batch2(make_transaction_queue):
 
     # setup some record that have duedate of 25
     SchedulerTask().execute_transaction_batch()
+
+    # make sure the task is updated
+    queue = TransactionQueue.find_one({"id": queue.id})
+    assert queue.status == "SENT"
+
+
+@freeze_time("01:00:59")  # in utc is 8.00
+def test_execute_invest_fee_transaction_batch(make_transaction_queue):
+    """ simulate executing schedules """
+    # create a transaction queue that already queued 2 hours ago
+    queue_at = datetime.utcnow() - timedelta(hours=2)
+    queue = make_transaction_queue("INVEST_MORNING", queue_at)
+
+    # setup some record that have duedate of 25
+    SchedulerTask().execute_transaction_batch()
+
+    # make sure the task is updated
+    queue = TransactionQueue.find_one({"id": queue.id})
+    assert queue.status == "SENT"
+
+
+@freeze_time("13:00:59")  # in utc is 20.00
+def test_execute_invest_fee_transaction_batch2(make_transaction_queue):
+    """ simulate executing schedules """
+    # create a transaction queue that already queued 2 hours ago
+    queue_at = datetime.utcnow() - timedelta(hours=2)
+    queue = make_transaction_queue("INVEST_NIGHT", queue_at)
+
+    # setup some record that have duedate of 25
+    SchedulerTask().execute_transaction_batch()
+
+    # make sure the task is updated
+    queue = TransactionQueue.find_one({"id": queue.id})
+    assert queue.status == "SENT"
+
+
+@freeze_time("14:00:59")  # in utc is 21.00
+def test_execute_transaction_batch_no_schedule(make_transaction_queue):
+    """ simulate executing schedules """
+    # create a transaction queue that already queued 2 minutes ago
+    queue_at = datetime.utcnow() - timedelta(minutes=2)
+    queue = make_transaction_queue("INVEST_NIGHT", queue_at)
+
+    SchedulerTask().execute_transaction_batch()
+
+    # make sure the task is not updated
+    queue = TransactionQueue.find_one({"id": queue.id})
+    assert queue.status == "WAITING"
 
 
 def test_generate_ojk_report():

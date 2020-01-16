@@ -3,13 +3,7 @@
 """
 import pytz
 from datetime import datetime
-from marshmallow import (
-    fields,
-    ValidationError,
-    validates,
-    validates_schema,
-    post_load
-)
+from marshmallow import fields, ValidationError, validates, validates_schema, post_load
 from app.api import ma
 from app.api.const import P2P_ID
 from app.config.external.bank import BNI_ECOLLECTION
@@ -32,10 +26,10 @@ def generate_local_date():
     local_date_string = local_now.strftime("%Y%m%d")
     return local_date_string
 
+
 def is_repayment_or_investment(account_no):
     # fixed pattern
-    fixed_pattern = BNI_ECOLLECTION["VA_PREFIX"] + \
-        BNI_ECOLLECTION["CREDIT_CLIENT_ID"]
+    fixed_pattern = BNI_ECOLLECTION["VA_PREFIX"] + BNI_ECOLLECTION["CREDIT_CLIENT_ID"]
     fixed_index = len(fixed_pattern)
     # prefix pattern
     investment_prefix = BNI_ECOLLECTION["INVESTMENT_PREFIX"]
@@ -43,24 +37,22 @@ def is_repayment_or_investment(account_no):
     prefix_length = len(investment_prefix)
 
     va_type = "INVALID"
-    if account_no[fixed_index:fixed_index+prefix_length] ==\
-            investment_prefix:
+    if account_no[fixed_index : fixed_index + prefix_length] == investment_prefix:
         va_type = "INVESTMENT"
-    elif account_no[fixed_index:fixed_index+prefix_length] ==\
-            repayment_prefix:
+    elif account_no[fixed_index : fixed_index + prefix_length] == repayment_prefix:
         va_type = "REPAYMENT"
     return va_type
 
 
 class BniVaCallbackSchema(ma.Schema):
     """ this is schema for callback object """
+
     virtual_account = fields.Str(required=True, validate=cannot_be_blank)
     customer_name = fields.Str(required=True, validate=cannot_be_blank)
     trx_id = fields.Int(required=True, validate=cannot_be_blank)
     trx_amount = fields.Float(required=True)
     payment_amount = fields.Int(required=True, validate=cannot_be_blank)
-    cumulative_payment_amount = fields.Int(required=True,
-                                           validate=cannot_be_blank)
+    cumulative_payment_amount = fields.Int(required=True, validate=cannot_be_blank)
     payment_ntb = fields.Str(required=True, validate=cannot_be_blank)
     datetime_payment = fields.Str(required=True, validate=cannot_be_blank)
 
@@ -81,14 +73,14 @@ class BniVaCallbackSchema(ma.Schema):
         if len(va_number) != 16:
             valid = False
         # second make sure 3 first va_number is valid
-        if va_number[:len(va_prefix)] != va_prefix:
+        if va_number[: len(va_prefix)] != va_prefix:
             valid = False
         # third make sure 3 first va_number is valid
-        if va_number[len(va_prefix):len(va_prefix+va_client_id)] != va_client_id:
+        if va_number[len(va_prefix) : len(va_prefix + va_client_id)] != va_client_id:
             valid = False
         # fourth make sure the va is either repayment or investment
         if is_repayment_or_investment(va_number) == "INVALID":
-                valid = False
+            valid = False
 
         if valid is not True:
             raise ValidationError("Invalid Virtual Account Number")
@@ -105,6 +97,7 @@ class BniVaCallbackSchema(ma.Schema):
 
 class BniRdlCallbackSchema(ma.Schema):
     """ this is schema for callback object """
+
     p2p_id = fields.Str(required=True, validate=cannot_be_blank)
     account_number = fields.Str(required=True, validate=cannot_be_blank)
     payment_amount = fields.Decimal(required=True, validate=cannot_be_blank)
@@ -122,8 +115,10 @@ class BniRdlCallbackSchema(ma.Schema):
         if flag != "C":
             raise ValidationError("Only accept Credit Flag")
 
+
 class TransactionCallbackSchema(ma.Schema):
     """ this is schema for transaction callback """
+
     transaction_id = fields.Str(required=True, validate=cannot_be_blank)
     transaction_type = fields.Str(required=True, validate=cannot_be_blank)
     status = fields.Str(required=True, validate=cannot_be_blank)
@@ -131,12 +126,14 @@ class TransactionCallbackSchema(ma.Schema):
 
 class WithdrawSchema(ma.Schema):
     """ this is schema for withdraw callback """
+
     destination_id = fields.Str(required=True, validate=cannot_be_blank)
     amount = fields.Int(required=True, validate=cannot_be_blank)
 
 
 class LoanBorrowerReportSchema(ma.Schema):
     """ this is schema for withdraw callback """
+
     p2p_id = fields.Str(default=P2P_ID)
     borrower_id = fields.Method("extract_borrower_code")
     borrower_type = fields.Str(default="1")
@@ -165,31 +162,27 @@ class LoanBorrowerReportSchema(ma.Schema):
             full_name = first_name + " " + last_name
         return full_name
 
-
     def extract_borrower_code(self, obj):
         return obj["borrower"]["bc"]
-
 
     def extract_ktp_no(self, obj):
         return obj["borrower"]["ktp"]["kn"]
 
-
     def extract_npwp_no(self, obj):
         return obj["borrower"]["npwp"]["nn"]
-
 
     def extract_agreement_date(self, obj):
         agreement_date = obj["tnc"]["aa"]
         agreement_date_string = agreement_date.strftime("%Y%m%d")
         return agreement_date_string
 
-
     def extract_disburse_date(self, obj):
         list_of_status = obj["lst"]
-        result = list(filter(
-            lambda item: item["st"] == \
-            'SEND_TO_MODANAKU_COMPLETED', list_of_status
-        ))
+        result = list(
+            filter(
+                lambda item: item["st"] == "SEND_TO_MODANAKU_COMPLETED", list_of_status
+            )
+        )
         try:
             disburse_date = result[0]["ca"]
         except IndexError:
@@ -198,13 +191,11 @@ class LoanBorrowerReportSchema(ma.Schema):
             disburse_date_string = disburse_date.strftime("%Y%m%d")
             return disburse_date_string
 
-
     def calculate_remaining_loan_amount(self, obj):
         remaining = obj["lar"]
         if obj["st"] == "PAID":
             remaining = 0
         return str(remaining)
-
 
     def extract_due_date(self, obj):
         due_date = obj["dd"]

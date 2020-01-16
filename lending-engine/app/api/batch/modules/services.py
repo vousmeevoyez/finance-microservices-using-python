@@ -11,8 +11,10 @@ from bson import ObjectId
 from bson.codec_options import CodecOptions
 
 from flask import current_app
+
 # models
 from app.api.models.batch import Schedule, TransactionQueue
+
 # core
 from app.api.lib.core.message import RESPONSE as error
 from app.api.lib.core.exceptions import BaseError
@@ -50,6 +52,7 @@ def convert_start_end_to_datetime(start, end):
         start_datetime = start_datetime - timedelta(days=1)
     return start_datetime, end_datetime
 
+
 def convert_list_of_string_to_datetime(schedules):
     """ convert list contain string start, end and executed at to datetime """
     # we need convert all time schedule into python datetime
@@ -59,12 +62,14 @@ def convert_list_of_string_to_datetime(schedules):
         start = convert_string_to_datetime(schedule.start)
         end = convert_string_to_datetime(schedule.end)
         executed_at = convert_string_to_datetime(schedule.executed_at)
-        converted_schedules.append({
-            "schedule_id": schedule.id,
-            "start": start,
-            "end": end,
-            "executed_at": executed_at
-        })
+        converted_schedules.append(
+            {
+                "schedule_id": schedule.id,
+                "start": start,
+                "end": end,
+                "executed_at": executed_at,
+            }
+        )
     return converted_schedules
 
 
@@ -128,9 +133,17 @@ def determine_batch(schedule_name):
 
 
 def schedule_transaction(
-        schedule_name, wallet_id, source_id, source_type,
-        destination_id, destination_type, amount,
-        transaction_type, model, model_id, status
+    schedule_name,
+    wallet_id,
+    source_id,
+    source_type,
+    destination_id,
+    destination_type,
+    amount,
+    transaction_type,
+    model,
+    model_id,
+    status,
 ):
     """ schedule transaction information to transaction queue """
     # second we need to determine which batch this transaction should executed
@@ -144,11 +157,7 @@ def schedule_transaction(
         destination_type=destination_type,
         amount=amount,
         transaction_type=transaction_type,
-        transaction_info={
-            "model": model,
-            "model_id": model_id,
-            "status": status
-        }
+        transaction_info={"model": model, "model_id": model_id, "status": status},
     )
     queue.commit()
     return queue.id

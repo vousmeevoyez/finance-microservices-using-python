@@ -11,10 +11,7 @@ from task.transaction.tasks import TransactionTask
 
 
 def approve_investor(investor_id):
-    result = InvestorTask().create_rdl.apply_async(
-        args=[investor_id],
-        queue="investor"
-    )
+    result = InvestorTask().create_rdl.apply_async(args=[investor_id], queue="investor")
     return {"id": result.id}, 202
 
 
@@ -33,7 +30,6 @@ def withdraw(investor_id, destination_id, amount):
     }
 
     result = TransactionTask().send_transaction.apply_async(
-        kwargs=withdraw_payload,
-        queue="transaction"
+        kwargs=withdraw_payload, queue="transaction"
     )
     return {"id": result.id}, 202

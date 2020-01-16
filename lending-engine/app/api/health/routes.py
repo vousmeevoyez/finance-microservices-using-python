@@ -16,6 +16,7 @@ class HealthCheckRoutes(Resource):
     """
         /health/check
     """
+
     def get(self):
         response = HealthServices().check()
         return response

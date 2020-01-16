@@ -12,15 +12,11 @@ from umongo.fields import (
     DecimalField,
     DateTimeField,
     IntField,
-    ListField
+    ListField,
 )
 
 from app.api import instance
-from app.api.models.base import (
-    BaseDocument,
-    BaseEmbeddedDocument,
-    BaseBankDocument
-)
+from app.api.models.base import BaseDocument, BaseEmbeddedDocument, BaseBankDocument
 from app.api.models.approval import ApprovalEmbed
 from app.api.lib.core.exceptions import BaseError
 
@@ -120,8 +116,7 @@ class Investor(BaseBankDocument):
     ca = DateTimeField(default=datetime.utcnow)
     ua = DateTimeField(default=datetime.utcnow)
     approvals = ListField(EmbeddedField(ApprovalEmbed), attribute="app", default=[])
-    approver_info = EmbeddedField(ApproverInfoEmbed,
-                                  attribute="approverInformation")
+    approver_info = EmbeddedField(ApproverInfoEmbed, attribute="approverInformation")
     fees = ListField(EmbeddedField(InvestorFeesEmbed), default=[])
 
     class Meta:
@@ -129,14 +124,16 @@ class Investor(BaseBankDocument):
 
     @staticmethod
     def get_investor_by_rdl(rdl_account):
-        investor = Investor.find({
-            "bank_accounts": {
-                "$elemMatch": {
-                    "account_no": rdl_account,
-                    "account_type": "RDL_ACCOUNT"
+        investor = Investor.find(
+            {
+                "bank_accounts": {
+                    "$elemMatch": {
+                        "account_no": rdl_account,
+                        "account_type": "RDL_ACCOUNT",
+                    }
                 }
             }
-        })
+        )
         result = list(investor)
         if len(result) == 0:
             raise InvestorNotFound()
@@ -144,17 +141,17 @@ class Investor(BaseBankDocument):
 
     def get_wallet(self):
         pipeline = [
-            {"$lookup": {
-                "from": "lender_wallets",
-                "localField": "user_id",
-                "foreignField": "user_id",
-                "as": "investor_wallet"
-            }},
+            {
+                "$lookup": {
+                    "from": "lender_wallets",
+                    "localField": "user_id",
+                    "foreignField": "user_id",
+                    "as": "investor_wallet",
+                }
+            },
             {"$match": {"user_id": self.user_id}},
-            {"$project": {
-                "investor_wallet": 1
-            }},
-            {"$unwind": "$investor_wallet"}
+            {"$project": {"investor_wallet": 1}},
+            {"$unwind": "$investor_wallet"},
         ]
         result = list(self.collection.aggregate(pipeline))
         return result[0]

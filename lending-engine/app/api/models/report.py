@@ -13,7 +13,7 @@ from umongo.fields import (
     DateField,
     IntField,
     BoolField,
-    ListField
+    ListField,
 )
 
 from app.api import instance
@@ -21,9 +21,10 @@ from app.api.models.base import (
     BaseDocument,
     BaseEmbeddedDocument,
     BankAccEmbed,
-    StatusEmbed
+    StatusEmbed,
 )
 from app.api.lib.core.exceptions import BaseError
+
 
 @instance.register
 class RegulationReport(BaseDocument):
@@ -33,9 +34,7 @@ class RegulationReport(BaseDocument):
     file_name = StrField(attribute="fn")
     file_path = StrField(attribute="fp")
     list_of_status = ListField(
-        EmbeddedField(StatusEmbed),
-        attribute="lst",
-        default=list
+        EmbeddedField(StatusEmbed), attribute="lst", default=list
     )
 
     class Meta:

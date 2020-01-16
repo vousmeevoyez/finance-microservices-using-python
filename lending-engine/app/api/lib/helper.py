@@ -34,11 +34,7 @@ class DecryptError(Exception):
 
 def encrypt(client_id, secret_key, data):
     """ encrypt data using BNI Client ID + Secret + data """
-    return BniEnc().encrypt(
-        json.dumps(data),
-        client_id,
-        secret_key
-    ).decode("utf-8")
+    return BniEnc().encrypt(json.dumps(data), client_id, secret_key).decode("utf-8")
 
 
 def decrypt(client_id, secret_key, data):
@@ -87,15 +83,18 @@ def generate_ref_number(destination, amount=None):
 
     return str(value_date) + str(end_fix) + str(randomize)
 
+
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)
 
 
-def send_notif(recipient, user_id, notif_type, platform, device_token=None, custom_content=None):
+def send_notif(
+    recipient, user_id, notif_type, platform, device_token=None, custom_content=None
+):
     email_info = {
         "recipient": recipient,
         "product_type": "MOPINJAM",
-        "email_type": notif_type
+        "email_type": notif_type,
     }
 
     in_app_info = {
@@ -105,13 +104,13 @@ def send_notif(recipient, user_id, notif_type, platform, device_token=None, cust
             "message": NOTIFICATIONS["CONTENT"][platform][notif_type],
         },
         "type_": NOTIFICATIONS["TYPE"][notif_type],
-        "platform": platform
+        "platform": platform,
     }
 
     push_info = {
         "device_token": device_token,
         "product_type": "MOPINJAM",
-        "notif_type": notif_type
+        "notif_type": notif_type,
     }
 
     if custom_content is not None:
@@ -122,16 +121,10 @@ def send_notif(recipient, user_id, notif_type, platform, device_token=None, cust
         email_info["content"] = custom_content
         push_info["content"] = custom_content
 
-    UtilityTask().send_email.apply_async(
-        kwargs=email_info,
-        queue="utility"
-    )
+    UtilityTask().send_email.apply_async(kwargs=email_info, queue="utility")
 
     if platform == "mobile":
-        UtilityTask().send_push_notif.apply_async(
-            kwargs=push_info,
-            queue="utility"
-        )
+        UtilityTask().send_push_notif.apply_async(kwargs=push_info, queue="utility")
 
     notif = Notification(**in_app_info)
     notif.commit()

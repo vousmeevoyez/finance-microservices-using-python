@@ -11,16 +11,17 @@ from celery import signature
 
 TIMEZONE = pytz.timezone("Asia/Jakarta")
 local_now = TIMEZONE.localize(datetime.utcnow())
-tomorrow_morning = local_now.replace(hour=0, minute=0, second=1) + \
-        timedelta(days=1)
+tomorrow_morning = local_now.replace(hour=0, minute=0, second=1) + timedelta(days=1)
 # for testing purpose we mark it 2 minutes
 tomorrow_morning_dev = local_now + timedelta(minutes=15)
 
+
 class Config:
     """ This is base class for configuration """
+
     DEBUG = False
 
-    #mongodb://[username:password@]host1[:port1][,...hostN[:portN]]][/[database][?options]]
+    # mongodb://[username:password@]host1[:port1][,...hostN[:portN]]][/[database][?options]]
     MONGO_DBNAME = os.getenv("MONGO_DBNAME") or "lending_engine"
     MONGO_PATH = os.getenv("MONGO_PATH") or "mongodb://modana:password@localhost:27017"
     MONGO_REPLICA_SET = os.getenv("MONGO_REPLICA_SET") or "mongo-rs"
@@ -47,27 +48,35 @@ class Config:
         "utility": {"exchange": "utility", "binding_key": "utility"},
         "scheduler": {"exchange": "scheduler", "binding_key": "scheduler"},
         "investor": {"exchange": "investor", "binding_key": "investor"},
-        "virtual_account": {"exchange": "virtual_account", "binding_key":
-                            "virtual_account"},
+        "virtual_account": {
+            "exchange": "virtual_account",
+            "binding_key": "virtual_account",
+        },
         "investment": {"exchange": "investment", "binding_key": "investment"},
-        "transaction": {"exchange": "transaction", "binding_key":
-                        "transaction"},
+        "transaction": {"exchange": "transaction", "binding_key": "transaction"},
     }
     CELERY_TRACK_STARTED = True
     CELERY_TIMEZONE = "Asia/Jakarta"
-    ALLOWED_EXTENSIONS = {'zip'}
+    ALLOWED_EXTENSIONS = {"zip"}
 
 
 class DevelopmentConfig(Config):
     """ This is class for development configuration """
+
     DEBUG = True
 
-    MONGO_URI = Config.MONGO_PATH + "/" + Config.MONGO_DBNAME + "?replicaSet=" + Config.MONGO_REPLICA_SET
+    MONGO_URI = (
+        Config.MONGO_PATH
+        + "/"
+        + Config.MONGO_DBNAME
+        + "?replicaSet="
+        + Config.MONGO_REPLICA_SET
+    )
 
     CELERY_RESULT_BACKEND = "mongodb"
     CELERY_MONGODB_BACKEND_SETTINGS = {
         "host": MONGO_URI,
-        "database": Config.MONGO_DBNAME
+        "database": Config.MONGO_DBNAME,
     }
 
     CELERYBEAT_SCHEDULE = {
@@ -82,49 +91,39 @@ class DevelopmentConfig(Config):
                     "task.scheduler.tasks.calculate_late_fees",
                     args=(),
                     kwargs={},
-                    queue="scheduler"
-                )
-            }
+                    queue="scheduler",
+                ),
+            },
         },
         # we set sending notiifcation every 8 morning
         "remind-loan-before-due-dates": {
             "task": "task.scheduler.tasks.remind_before_due_dates",
             "schedule": crontab(hour=8, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # we set sending notiifcation every 15 evening
         "remind-loan-after-due-dates": {
             "task": "task.scheduler.tasks.remind_after_due_dates",
             "schedule": crontab(hour=15, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # we set auto cancel every midnight
         "auto-cancel-pending-loan": {
             "task": "task.scheduler.tasks.auto_cancel_pending_loan",
             "schedule": crontab(hour=12, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # we set auto cancel every midnight
         "auto-cancel-approved-loan": {
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
             "schedule": crontab(hour=12, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # execute batch every minutes if there any
         "execute-batch": {
             "task": "task.scheduler.tasks.execute_transaction_batch",
             "schedule": crontab(),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # for dev purpose we send every 5 minutes
         "generate-afpi-report": {
@@ -137,23 +136,22 @@ class DevelopmentConfig(Config):
                     args=(),
                     kwargs={},
                     queue="scheduler",
-                    eta=tomorrow_morning_dev
-                )
-            }
+                    eta=tomorrow_morning_dev,
+                ),
+            },
         },
         # for dev purpose we send every 5 minutes
         "generate-ojk-report": {
             "task": "task.scheduler.tasks.generate_ojk_report",
             "schedule": crontab(minute="*/60"),
-            "options": {
-                "queue": "scheduler",
-            }
-        }
+            "options": {"queue": "scheduler"},
+        },
     }
 
 
 class TestingConfig(Config):
     """ This is class for testing configuration """
+
     DEBUG = True
     TESTING = True
 
@@ -168,20 +166,27 @@ class TestingConfig(Config):
     CELERY_RESULT_BACKEND = "mongodb"
     CELERY_MONGODB_BACKEND_SETTINGS = {
         "host": Config.MONGO_PATH,
-        "database": MONGO_DBNAME
+        "database": MONGO_DBNAME,
     }
 
 
 class ProductionConfig(Config):
     """ This is class for production configuration """
+
     DEBUG = False
 
-    MONGO_URI = Config.MONGO_PATH + "/" + Config.MONGO_DBNAME + "?replicaSet=" + Config.MONGO_REPLICA_SET
+    MONGO_URI = (
+        Config.MONGO_PATH
+        + "/"
+        + Config.MONGO_DBNAME
+        + "?replicaSet="
+        + Config.MONGO_REPLICA_SET
+    )
 
     CELERY_RESULT_BACKEND = "mongodb"
     CELERY_MONGODB_BACKEND_SETTINGS = {
         "host": MONGO_URI,
-        "database": Config.MONGO_DBNAME
+        "database": Config.MONGO_DBNAME,
     }
 
     PRESERVE_CONTEXT_ON_EXCEPTION = False
@@ -199,49 +204,39 @@ class ProductionConfig(Config):
                     "task.scheduler.tasks.calculate_late_fees",
                     args=(),
                     kwargs={},
-                    queue="scheduler"
-                )
-            }
+                    queue="scheduler",
+                ),
+            },
         },
         # we set sending notiifcation every 8 morning
         "remind-loan-before-due-dates": {
             "task": "task.scheduler.tasks.remind_before_due_dates",
             "schedule": crontab(hour=8, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # we set sending notiifcation every 15 evening
         "remind-loan-after-due-dates": {
             "task": "task.scheduler.tasks.remind_after_due_dates",
             "schedule": crontab(hour=15, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # we set auto cancel every midnight
         "auto-cancel-pending-loan": {
             "task": "task.scheduler.tasks.auto_cancel_pending_loan",
             "schedule": crontab(hour=0, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # we set auto cancel every midnight
         "auto-cancel-approved-loan": {
             "task": "task.scheduler.tasks.auto_cancel_approved_loan",
             "schedule": crontab(hour=0, minute=0),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # execute batch every minutes if there any
         "execute-batch": {
             "task": "task.scheduler.tasks.execute_transaction_batch",
             "schedule": crontab(),
-            "options": {
-                "queue": "scheduler",
-            }
+            "options": {"queue": "scheduler"},
         },
         # generate AFPI Report every 18.00 and upload it next morning
         "generate-afpi-report": {
@@ -254,23 +249,17 @@ class ProductionConfig(Config):
                     args=(),
                     kwargs={},
                     queue="scheduler",
-                    eta=tomorrow_morning
-                )
-            }
+                    eta=tomorrow_morning,
+                ),
+            },
         },
         # we trigger generate ojk report every 1 on each month
         "generate-ojk-report": {
             "task": "task.scheduler.tasks.generate_ojk_report",
             "schedule": crontab(hour="0", minute="0", day_of_month="1"),
-            "options": {
-                "queue": "scheduler",
-            }
-        }
+            "options": {"queue": "scheduler"},
+        },
     }
 
 
-CONFIG_BY_NAME = dict(
-    dev=DevelopmentConfig,
-    test=TestingConfig,
-    prod=ProductionConfig
-)
+CONFIG_BY_NAME = dict(dev=DevelopmentConfig, test=TestingConfig, prod=ProductionConfig)

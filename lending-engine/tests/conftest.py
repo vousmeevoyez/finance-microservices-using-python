@@ -900,7 +900,7 @@ def make_transaction_queue(setup_schedules, setup_investment_with_transaction):
 
         selected_schedule = None
         transaction = None
-        transaction_info  = {}
+        transaction_info = {}
         if schedule_name == "UPFRONT_AFTERNOON":
             selected_schedule = schedules[0]
             transaction = transactions[2]

@@ -6,10 +6,7 @@ from datetime import datetime
 from bson import ObjectId
 from flask import current_app
 
-from app.api.models.base import (
-    StatusEmbed,
-    TransactionStatusNotFound
-)
+from app.api.models.base import StatusEmbed, TransactionStatusNotFound
 
 from app.api.lib.helper import str_to_class, send_notif
 from app.api.lib.core.http_error import RequestNotFound
@@ -30,20 +27,18 @@ LOCAL_TIMEZONE = pytz.timezone("Asia/Jakarta")
 def get_investment_investor_loan_fee(loan_request):
     """ using loan request we get investment and loan fee information """
     investment_model = str_to_class("Investment")
-    investment_info = investment_model.get_by_loan_request(
-        loan_request.id
-    )
-    investment = investment_model.find_one(
-        {"id": ObjectId(investment_info["id"])}
-    )
+    investment_info = investment_model.get_by_loan_request(loan_request.id)
+    investment = investment_model.find_one({"id": ObjectId(investment_info["id"])})
     # get investor
     investor_model = str_to_class("Investor")
     investor = investor_model.find_one({"id": investment.investor_id})
     #  we need to know how much investor repayment
-    loan_request_fee = list(filter(
-        lambda loan: loan.loan_request_id ==
-        loan_request.id, investment.loan_requests
-    ))
+    loan_request_fee = list(
+        filter(
+            lambda loan: loan.loan_request_id == loan_request.id,
+            investment.loan_requests,
+        )
+    )
     return investment, investor, loan_request_fee
 
 
@@ -51,6 +46,7 @@ class BaseSingleTrxCallback:
     """ using this base class when we receive a internal callback transaction
     it automatically update single record but multiple model that have transaction id either to
     completed or failed """
+
     __models__ = []
 
     def __init__(self):
@@ -64,20 +60,18 @@ class BaseSingleTrxCallback:
         for item in self.__models__:
             try:
                 model = str_to_class(item)
-                _id = model().get_by_transaction(
-                    self.callback_info.transaction_id
-                )
+                _id = model().get_by_transaction(self.callback_info.transaction_id)
             except TransactionStatusNotFound:
                 raise RequestNotFound(
                     RESPONSE["TRANSACTION_STATUS_NOT_FOUND"]["TITLE"],
-                    RESPONSE["TRANSACTION_STATUS_NOT_FOUND"]["MESSAGE"]
+                    RESPONSE["TRANSACTION_STATUS_NOT_FOUND"]["MESSAGE"],
                 )
 
             # ADD  COMPLETED STATUS HERE
             # begin mongo session here
             transaction_status = StatusEmbed(
                 transaction_id=self.callback_info.transaction_id,
-                status=self.callback_info.status
+                status=self.callback_info.status,
             )
 
             object_ = model.find_one({"id": _id})
@@ -101,13 +95,11 @@ class BaseMultipleTrxCallback(BaseSingleTrxCallback):
         for item in self.__models__:
             try:
                 model = str_to_class(item)
-                _ids = model().get_by_transactions(
-                    self.callback_info.transaction_id
-                )
+                _ids = model().get_by_transactions(self.callback_info.transaction_id)
             except TransactionStatusNotFound:
                 raise RequestNotFound(
                     RESPONSE["TRANSACTION_STATUS_NOT_FOUND"]["TITLE"],
-                    RESPONSE["TRANSACTION_STATUS_NOT_FOUND"]["MESSAGE"]
+                    RESPONSE["TRANSACTION_STATUS_NOT_FOUND"]["MESSAGE"],
                 )
             # end try
             for _id in _ids:
@@ -115,7 +107,7 @@ class BaseMultipleTrxCallback(BaseSingleTrxCallback):
                 # begin mongo session here
                 transaction_status = StatusEmbed(
                     transaction_id=self.callback_info.transaction_id,
-                    status=self.callback_info.status
+                    status=self.callback_info.status,
                 )
 
                 object_ = model.find_one({"id": _id})
@@ -153,6 +145,7 @@ class BaseMultipleTrxCallback(BaseSingleTrxCallback):
 class WithdrawCallback(BaseSingleTrxCallback):
     """ Handle what to do when we receive withdraw callback from transaction
     engine """
+
     def update(self):
         # currently we dont do anything!
         pass
@@ -192,14 +185,13 @@ class UpfrontFeeCallback(BaseMultipleTrxCallback):
             "transaction_type": transaction_type,
             "model": "Investment",
             "model_id": str(investment.id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
 
         TransactionTask().send_transaction.apply_async(
             kwargs=credit_transaction,
             queue="transaction",
-            link=TransactionTask().map_transaction.s().set(queue="transaction")
+            link=TransactionTask().map_transaction.s().set(queue="transaction"),
         )
 
 
@@ -226,25 +218,21 @@ class DisburseCallback(BaseSingleTrxCallback):
                 "model_id": str(loan_request.id),
                 "va_type": "REPAYMENT",
                 "custom_status": "REPAYMENT",
-                "label": "REPAYMENT"
+                "label": "REPAYMENT",
             }
             VirtualAccountTask().create_va.apply_async(
                 kwargs=repayment_va,
                 queue="virtual_account",
-                link=InvestmentTask().create_payment_plan.si(
-                    str(loan_request.id)
-                ).set(queue="investment")
+                link=InvestmentTask()
+                .create_payment_plan.si(str(loan_request.id))
+                .set(queue="investment"),
             )
 
             # send email to all borrower
             borrower_model = str_to_class("Borrower")
-            borrower = borrower_model.find_one(
-                {"id": loan_request.borrower_id}
-            )
+            borrower = borrower_model.find_one({"id": loan_request.borrower_id})
             user_model = str_to_class("User")
-            user = user_model.find_one(
-                {"id": borrower.user_id}
-            )
+            user = user_model.find_one({"id": borrower.user_id})
 
             # send borrower notif through email and in app
             send_notif(
@@ -252,10 +240,8 @@ class DisburseCallback(BaseSingleTrxCallback):
                 user_id=borrower.user_id,
                 notif_type="LOAN_REQUEST_DISBURSE",
                 platform="mobile",
-                custom_content={
-                    "loan_request_code": loan_request.loan_request_code
-                },
-                device_token=user.device_id
+                custom_content={"loan_request_code": loan_request.loan_request_code},
+                device_token=user.device_id,
             )
 
             loan_request.status = status
@@ -320,21 +306,20 @@ class InvestFeeCallback(BaseMultipleTrxCallback):
             update_payload = {
                 "model": "LoanRequest",
                 "model_id": str(loan_request.id),
-                "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-                "_REQUESTED"
+                "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
             }
             transactions.append(trx_payload)
             update_records.append(update_payload)
         # end for
         task_payload = {
             "transactions": transactions,
-            "update_records": update_records  # rcrd that need t updates
+            "update_records": update_records,  # rcrd that need t updates
         }
 
         TransactionTask().send_bulk_transaction.apply_async(
             kwargs=task_payload,
             queue="transaction",
-            link=TransactionTask().map_bulk_transaction.s().set(queue="transaction")
+            link=TransactionTask().map_bulk_transaction.s().set(queue="transaction"),
         )
 
 
@@ -357,16 +342,19 @@ class ReceiveInvestFeeCallback(BaseMultipleTrxCallback):
         update_records = []
         for loan_request in loan_requests:
             # get all required info (investment, investor, loan request fee )
-            investment, investor, loan_request_fee = \
-                get_investment_investor_loan_fee(loan_request)
+            investment, investor, loan_request_fee = get_investment_investor_loan_fee(
+                loan_request
+            )
 
             """
                 we pick the last element of fees because potentially
                 there are late fees
             """
-            repayment_amount = loan_request_fee[0].disburse_amount \
-                + loan_request_fee[0].total_fee \
+            repayment_amount = (
+                loan_request_fee[0].disburse_amount
+                + loan_request_fee[0].total_fee
                 + loan_request_fee[0].fees[-1].investor_fee
+            )
 
             transaction_type = "INVEST_REPAYMENT"
             send_invest_fee = {
@@ -381,8 +369,7 @@ class ReceiveInvestFeeCallback(BaseMultipleTrxCallback):
             update_record = {
                 "model": "LoanRequest",
                 "model_id": str(loan_request.id),
-                "status":
-                TRANSACTION_TYPE_TO_STATUS[transaction_type]+"_REQUESTED"
+                "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
             }
             # populate transaction to be bulked
             transactions.append(send_invest_fee)
@@ -391,13 +378,13 @@ class ReceiveInvestFeeCallback(BaseMultipleTrxCallback):
 
         task_payload = {
             "transactions": transactions,
-            "update_records": update_records  # rcrd that need t updates
+            "update_records": update_records,  # rcrd that need t updates
         }
 
         TransactionTask().send_bulk_transaction.apply_async(
             kwargs=task_payload,
             queue="transaction",
-            link=TransactionTask().map_bulk_transaction.s().set(queue="transaction")
+            link=TransactionTask().map_bulk_transaction.s().set(queue="transaction"),
         )
 
 
@@ -412,8 +399,9 @@ class InvestRepaymentCallback(BaseSingleTrxCallback):
         loan_request = self.objects[0]
 
         # get all required info (investment, investor, loan request fee )
-        investment, investor, loan_request_fee = \
-            get_investment_investor_loan_fee(loan_request)
+        investment, investor, loan_request_fee = get_investment_investor_loan_fee(
+            loan_request
+        )
 
         # trigger email to borrower
         current_time = datetime.utcnow()
@@ -421,9 +409,7 @@ class InvestRepaymentCallback(BaseSingleTrxCallback):
         repayment_date = current_local_time.strftime("%Yi-%m-%d %H:%M")
         # get product name
         product_model = str_to_class("Product")
-        product = product_model.find_one(
-            {"_id": loan_request.product_id}
-        )
+        product = product_model.find_one({"_id": loan_request.product_id})
 
         # send investor notif through email and in app
         send_notif(
@@ -434,6 +420,6 @@ class InvestRepaymentCallback(BaseSingleTrxCallback):
             custom_content={
                 "repayment_date": repayment_date,
                 "repayment_amount": loan_request.requested_loan_request,
-                "product": product.product_name
-            }
+                "product": product.product_name,
+            },
         )

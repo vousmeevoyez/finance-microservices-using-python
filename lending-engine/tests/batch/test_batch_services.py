@@ -26,17 +26,20 @@ def test_check_schedule2():
     schedule_ids = check_executed_schedule()
     assert schedule_ids
 
+
 @freeze_time("2019-11-11 12:00:00")  # UTC equal to 19.00 WIB
 def test_check_schedule3():
     """ check schedule in afternoon, there should be 1 schedule """
     schedule_ids = check_executed_schedule()
     assert schedule_ids
 
+
 @freeze_time("2019-11-11 01:00:00")  # UTC equal to 08.00 WIB
 def test_check_schedule4():
     """ check schedule in afternoon, there should be 1 schedule """
     schedule_ids = check_executed_schedule()
     assert schedule_ids
+
 
 @freeze_time("2019-11-11 13:00:00")  # UTC equal to 20.00 WIB
 def test_check_schedule5():
@@ -56,6 +59,7 @@ def test_determine_batch():
     schedule_id = result[0]
     schedule = Schedule.find_one({"id": schedule_id})
     assert schedule.executed_at == "19:0"
+
 
 @freeze_time("2019-11-11 01:45:00")  # UTC equal to 08.45 WIB
 def test_determine_batch2():
@@ -94,6 +98,32 @@ def test_determine_batch4():
     schedule_id = result[0]
     schedule = Schedule.find_one({"id": schedule_id})
     assert schedule.executed_at == "8:0"
+
+
+@freeze_time("2019-11-10 23:00:00")  # UTC equal to 6.00 WIB
+def test_determine_batch5():
+    """ test determine batch function that decide where transaction should be
+    queued """
+    result = determine_batch("INVEST_FEE")
+    assert len(result)
+    # because the transaction created around 6.00 this one should be queued
+    # 8.00
+    schedule_id = result[0]
+    schedule = Schedule.find_one({"id": schedule_id})
+    assert schedule.executed_at == "8:0"
+
+
+@freeze_time("2019-11-10 22:00:00")  # UTC equal to 5.00 WIB
+def test_determine_batch6():
+    """ test determine batch function that decide where transaction should be
+    queued """
+    result = determine_batch("UPFRONT_FEE")
+    assert len(result)
+    # because the transaction created around 6.00 this one should be queued
+    # tomorrow at 13.00
+    schedule_id = result[0]
+    schedule = Schedule.find_one({"id": schedule_id})
+    assert schedule.executed_at == "13:0"
 
 '''
 @freeze_time("2019-11-11 00:00:00")  # UTC equal to 07.00 WIB

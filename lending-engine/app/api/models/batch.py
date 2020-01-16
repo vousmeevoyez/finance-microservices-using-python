@@ -10,20 +10,17 @@ from umongo.fields import (
     ListField,
     ObjectIdField,
     DateTimeField,
-    DecimalField
+    DecimalField,
 )
 
 from app.api import instance
-from app.api.models.base import (
-    BaseDocument,
-    BaseEmbeddedDocument,
-    BaseBankDocument
-)
+from app.api.models.base import BaseDocument, BaseEmbeddedDocument, BaseBankDocument
 
 
 @instance.register
 class Schedule(BaseDocument):
     """ Schedule Model """
+
     name = StrField()
     start = StrField()
     end = StrField()
@@ -36,13 +33,16 @@ class Schedule(BaseDocument):
 @instance.register
 class TransactionInfoEmbed(BaseEmbeddedDocument):
     """ transaction info embedded Model """
+
     model = StrField()
     model_id = StrField()
     status = StrField()
 
+
 @instance.register
 class TransactionQueue(BaseDocument):
     """ transaction queue """
+
     status = StrField(default="WAITING")
     schedule_id = ObjectIdField()
     wallet_id = ObjectIdField()

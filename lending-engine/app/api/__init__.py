@@ -13,11 +13,9 @@ from flask_marshmallow import Marshmallow
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
+
 # import logging config immediately
-from app.config import (
-    logging,
-    config
-)
+from app.config import logging, config
 
 ma = Marshmallow()
 sentry = sentry_sdk

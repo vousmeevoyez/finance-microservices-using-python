@@ -9,7 +9,7 @@ from umongo.fields import (
     ObjectIdField,
     IntField,
     BooleanField,
-    StrField
+    StrField,
 )
 
 from app.api import instance
@@ -25,6 +25,7 @@ class TemplateEmbed(BaseEmbeddedDocument):
 @instance.register
 class Notification(BaseDocument):
     """ shared bank account embedded models """
+
     user_id = ObjectIdField()
     template = EmbeddedField(TemplateEmbed, attribute="tmp")
     type_ = StrField(attribute="tp")

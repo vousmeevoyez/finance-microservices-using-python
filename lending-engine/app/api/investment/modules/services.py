@@ -15,13 +15,16 @@ from app.api.models.investor import Investor, InvestorNotFound
 from app.api.models.wallet import Wallet
 from app.api.models.loan_request import LoanRequest
 from app.api.models.user import User
+
 # task
 from task.investment.tasks import InvestmentTask
 from task.virtual_account.tasks import VirtualAccountTask
 from task.transaction.tasks import TransactionTask
 from task.utility.tasks import UtilityTask
+
 # services
 from app.api.batch.modules.services import schedule_transaction
+
 # core
 from app.api.lib.helper import send_notif
 from app.api.lib.core.message import RESPONSE as error
@@ -34,7 +37,6 @@ class InvestmentServiceError(BaseError):
 
 
 class InvestmentServices:
-
     def __init__(self, investment_id):
         investment = Investment.find_one({"id": ObjectId(investment_id)})
         if investment is None:
@@ -63,8 +65,7 @@ class InvestmentServices:
             "transaction_type": "INVEST",
             "model": "Investment",
             "model_id": str(self.investment.id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
         return transaction_payload
 
@@ -82,8 +83,7 @@ class InvestmentServices:
             "transaction_type": "RECEIVE_INVEST",
             "model": "Investment",
             "model_id": str(self.investment.id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
         return transaction_payload
 
@@ -101,8 +101,7 @@ class InvestmentServices:
             "transaction_type": transaction_type,
             "model": "LoanRequest",
             "model_id": str(loan_request_id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
 
         return transaction_payload
@@ -128,8 +127,7 @@ class InvestmentServices:
             "transaction_type": transaction_type,
             "model": "Investment",
             "model_id": str(self.investment.id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
 
         return debit_transaction
@@ -139,7 +137,7 @@ class InvestmentServices:
         investment_va = {
             "model_name": "Investment",
             "model_id": str(self.investment.id),
-            "va_type": "INVESTMENT"
+            "va_type": "INVESTMENT",
         }
         # must be chained otherwise there's possibility when execute transfer
         # to investment va the va itself hasn't been created
@@ -148,21 +146,18 @@ class InvestmentServices:
 
         chain(
             # create investment va in background!
-            VirtualAccountTask().create_va.si(
-                **investment_va
-            ).set(queue="virtual_account"),
+            VirtualAccountTask()
+            .create_va.si(**investment_va)
+            .set(queue="virtual_account"),
             # send money to investment va
-            TransactionTask().send_transaction.si(
-                **invest_payload
-            ).set(queue="transaction"),
+            TransactionTask()
+            .send_transaction.si(**invest_payload)
+            .set(queue="transaction"),
             # map successful transaction into designated object
-            TransactionTask().map_transaction.s().set(queue="transaction")
+            TransactionTask().map_transaction.s().set(queue="transaction"),
         ).apply_async()
 
-        return {
-            "status": "PROCESSING_INVESTMENT",
-            "investment": invest_payload
-        }, 202
+        return {"status": "PROCESSING_INVESTMENT", "investment": invest_payload}, 202
 
     def send_to_profit(self):
         """ wrapper function to wrap all background task to send and receive money to
@@ -185,9 +180,9 @@ class InvestmentServices:
         disbursements = []
         for loan_request in self.investment.loan_requests:
             # disburse loan
-            disbursement = \
-                self._build_disburse_payload(loan_request.loan_request_id,
-                                             loan_request.disburse_amount)
+            disbursement = self._build_disburse_payload(
+                loan_request.loan_request_id, loan_request.disburse_amount
+            )
             disbursements.append(disbursement)
             TransactionTask().send_transaction.apply_async(
                 kwargs=disbursement,
@@ -196,14 +191,16 @@ class InvestmentServices:
             )
 
             # update tnc
-            loan_request = LoanRequest.find_one({"id":
-                                                 loan_request.loan_request_id})
+            loan_request = LoanRequest.find_one({"id": loan_request.loan_request_id})
             article = Article.find_one({"id": loan_request.tnc.file_id})
             # convert to template
             template = Template(article.content)
             # investor name
-            investor_name = self.investor.first_name + self.investor.middle_name + \
-                self.investor.last_name
+            investor_name = (
+                self.investor.first_name
+                + self.investor.middle_name
+                + self.investor.last_name
+            )
             parsed_template = template.substitute(PEMBERI_PINJAMAN=investor_name)
             article.content = parsed_template
             article.commit()
@@ -214,7 +211,7 @@ class InvestmentServices:
         TransactionTask().send_transaction.apply_async(
             kwargs=receive_invest_payload,
             queue="transaction",
-            link=TransactionTask().map_transaction.s().set(queue="transaction")
+            link=TransactionTask().map_transaction.s().set(queue="transaction"),
         )
         return receive_invest_payload
 
@@ -229,7 +226,7 @@ class InvestmentServices:
             kwargs={
                 "model_name": "Investment",
                 "model_id": str(self.investment.id),
-                "label": "REPAYMENT"
+                "label": "REPAYMENT",
             },
             queue="virtual_account",
         )
@@ -242,12 +239,15 @@ class InvestmentServices:
         # send email to investor
         self.send_disburse_notif()
 
-        return {
-            "status": "PROCESSING_DISBURSEMENT",
-            "upfront_fee": upfront_fee,
-            "receive_invest": receive_invest_payload,
-            "disbursements": disbursements
-        }, 202
+        return (
+            {
+                "status": "PROCESSING_DISBURSEMENT",
+                "upfront_fee": upfront_fee,
+                "receive_invest": receive_invest_payload,
+                "disbursements": disbursements,
+            },
+            202,
+        )
 
     def send_disburse_notif(self):
         email_notif, in_app_notif = send_notif(
@@ -255,6 +255,6 @@ class InvestmentServices:
             user_id=self.investor.user_id,
             notif_type="INVESTOR_DISBURSE",
             platform="mobile",
-            device_token=self.user.device_id
+            device_token=self.user.device_id,
         )
         return email_notif, in_app_notif

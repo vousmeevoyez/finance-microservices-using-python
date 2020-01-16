@@ -17,14 +17,17 @@ from datetime import datetime, timedelta
 from bson import ObjectId
 from flask import current_app
 from app.api.serializer import LoanBorrowerReportSchema
+
 # models
 from app.api.models.report import RegulationReport, AfpiReport
 from app.api.models.borrower import Borrower
 from app.api.models.loan_request import LoanRequest, LoanRequestNotFound
+
 # config
 from app.api.const import P2P_ID
 from app.config.external.afpi import SERVER
 from app.config.external.storage import FILE_URL
+
 # core
 from app.api.lib.core.exceptions import BaseError
 
@@ -38,62 +41,56 @@ class ReportServicesError(BaseError):
 
 def fetch_all_loans(regulation_report_id, start_time, end_time):
     # first we need to join loan and borrower and query everything
-    loans_borrowers = list(LoanRequest.collection.aggregate([
-        {
-            "$match": {
-                "$or": [
-                    {
-                        "st": "DISBURSED"
-                    },
-                    {
-                        "st": "PAID",
-                        "pda": {
-                            "$gte": start_time,
-                            "$lte": end_time
-                        }
-                    },
-                    {
-                        "st": "WRITEOFF",
-                        "wda": {
-                            "$gte": start_time,
-                            "$lte": end_time
-                        }
+    loans_borrowers = list(
+        LoanRequest.collection.aggregate(
+            [
+                {
+                    "$match": {
+                        "$or": [
+                            {"st": "DISBURSED"},
+                            {
+                                "st": "PAID",
+                                "pda": {"$gte": start_time, "$lte": end_time},
+                            },
+                            {
+                                "st": "WRITEOFF",
+                                "wda": {"$gte": start_time, "$lte": end_time},
+                            },
+                        ]
                     }
-                ]
-            }
-        },
-        {
-            "$lookup": {
-                "from": "lender_borrowers",
-                "localField": "borrower_id",
-                "foreignField": "_id",
-                "as": "borrower",
-            },
-        },
-        {
-            "$unwind": "$borrower",
-        },
-        {
-            "$project": {
-                "_id": 0,
-                "lrc": 1,
-                "tnc.aa": 1,
-                "borrower.bc": 1,
-                "borrower.fn": 1,
-                "borrower.mn": 1,
-                "borrower.ln": 1,
-                "borrower.ktp.kn": 1,
-                "borrower.npwp.nn": 1,
-                "pda": 1,
-                "lar": 1,
-                "dd": 1,
-                "psts": 1,
-                "ov": 1,
-                "st": 1,
-                "lst": 1,
-            }
-        }
-    ]))
+                },
+                {
+                    "$lookup": {
+                        "from": "lender_borrowers",
+                        "localField": "borrower_id",
+                        "foreignField": "_id",
+                        "as": "borrower",
+                    }
+                },
+                {"$unwind": "$borrower"},
+                {
+                    "$project": {
+                        "_id": 0,
+                        "lrc": 1,
+                        "tnc.aa": 1,
+                        "borrower.bc": 1,
+                        "borrower.fn": 1,
+                        "borrower.mn": 1,
+                        "borrower.ln": 1,
+                        "borrower.ktp.kn": 1,
+                        "borrower.npwp.nn": 1,
+                        "pda": 1,
+                        "lar": 1,
+                        "dd": 1,
+                        "psts": 1,
+                        "ov": 1,
+                        "st": 1,
+                        "lst": 1,
+                    }
+                },
+            ]
+        )
+    )
 
     converted_data = []
     for loan_borrower in loans_borrowers:
@@ -114,19 +111,13 @@ def create_afpi_report_entry():
     start_time = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_time = now.replace(hour=23, minute=59)
 
-    regulation_report = RegulationReport.find_one({
-        "ca": {
-            "$gte": start_time,
-            "$lte": end_time
-        }
-    })
+    regulation_report = RegulationReport.find_one(
+        {"ca": {"$gte": start_time, "$lte": end_time}}
+    )
 
     if regulation_report is None:
         regulation_report = RegulationReport(
-            report_type="AFPI",
-            list_of_status=[{
-                "status": "PROCESSING"
-            }]
+            report_type="AFPI", list_of_status=[{"status": "PROCESSING"}]
         )
         regulation_report.commit()
     # fetch all loans
@@ -136,8 +127,7 @@ def create_afpi_report_entry():
     # first we need to check whether this regulation report id has been
     # inserted or not if already inserted we just update the information so no
     # duplicate entry created
-    afpi_reports = list(AfpiReport.find({"regulation_report_id":
-                                         regulation_report.id}))
+    afpi_reports = list(AfpiReport.find({"regulation_report_id": regulation_report.id}))
     if afpi_reports == []:
         AfpiReport.collection.insert_many(loans)
     else:
@@ -148,13 +138,14 @@ def create_afpi_report_entry():
             query = ReplaceOne(
                 {
                     "regulation_report_id": regulation_report.id,
-                    "loan_id": loan["loan_id"]
+                    "loan_id": loan["loan_id"],
                 },
-                loan
+                loan,
             )
             operations.append(query)
         AfpiReport.collection.bulk_write(operations)
     return regulation_report
+
 
 def generate_afpi_filename(version):
     # pattern is
@@ -166,21 +157,38 @@ def generate_afpi_filename(version):
 
 
 def generate_afpi_report(regulation_report_id=None, version="01"):
-    reports = list(AfpiReport.collection.find({
-        "regulation_report_id": ObjectId(regulation_report_id)
-    }))
+    reports = list(
+        AfpiReport.collection.find(
+            {"regulation_report_id": ObjectId(regulation_report_id)}
+        )
+    )
 
     # initialize temporary output using stringio
     csv_buffer = io.StringIO()
     # init header name
-    field_names = ["p2p_id", "borrower_id", "borrower_type", "borrower_name",
-                   "identity_no", "npwp_no", "loan_id", "agreement_date",
-                   "disburse_date", "loan_amount", "reported_date",
-                   "remaining_loan_amount", "due_date", "quality",
-                   "current_dpd", "max_dpd", "status"]
+    field_names = [
+        "p2p_id",
+        "borrower_id",
+        "borrower_type",
+        "borrower_name",
+        "identity_no",
+        "npwp_no",
+        "loan_id",
+        "agreement_date",
+        "disburse_date",
+        "loan_amount",
+        "reported_date",
+        "remaining_loan_amount",
+        "due_date",
+        "quality",
+        "current_dpd",
+        "max_dpd",
+        "status",
+    ]
     # init csv writer using dictwriter instead of normal writer
-    writer = csv.DictWriter(csv_buffer, field_names, delimiter="|",
-                            extrasaction="ignore")
+    writer = csv.DictWriter(
+        csv_buffer, field_names, delimiter="|", extrasaction="ignore"
+    )
     for report in reports:
         writer.writerow(report)
 
@@ -199,13 +207,11 @@ def generate_afpi_report(regulation_report_id=None, version="01"):
     subprocess.call(command)
     # dont forget to add CREATED
     # also add link to access the file
-    regulation_report = RegulationReport.find_one({
-        "id": ObjectId(regulation_report_id)
-    })
+    regulation_report = RegulationReport.find_one(
+        {"id": ObjectId(regulation_report_id)}
+    )
     regulation_report.file_url = FILE_URL.format(str(regulation_report_id))
-    regulation_report.list_of_status.append({
-        "status": "CREATED"
-    })
+    regulation_report.list_of_status.append({"status": "CREATED"})
     regulation_report.commit()
 
     return zip_name
@@ -219,10 +225,10 @@ def upload_file_via_ftp(file_, filename):
 
     try:
         with pysftp.Connection(
-                SERVER["HOST"],
-                username=SERVER["USERNAME"],
-                password=SERVER["PASSWORD"],
-                cnopts=cnopts
+            SERVER["HOST"],
+            username=SERVER["USERNAME"],
+            password=SERVER["PASSWORD"],
+            cnopts=cnopts,
         ) as sftp:
             sftp.putfo(file_, "/in/{}".format(filename))
     except:

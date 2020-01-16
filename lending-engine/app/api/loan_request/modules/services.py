@@ -9,6 +9,7 @@ from datetime import datetime
 
 from bson import ObjectId
 from flask import current_app
+
 # models
 from app.api.models.investment import Investment
 from app.api.models.borrower import Borrower
@@ -16,12 +17,15 @@ from app.api.models.loan_request import LoanRequest, LoanRequestNotFound
 from app.api.models.product import Product
 from app.api.models.wallet import Wallet
 from app.api.models.user import User
+
 # services
 from app.api.batch.modules.services import schedule_transaction
+
 # task
 from task.transaction.tasks import TransactionTask
 from task.virtual_account.tasks import VirtualAccountTask
 from task.utility.tasks import UtilityTask
+
 # core
 from app.api.lib.helper import send_notif
 from app.api.lib.core.exceptions import BaseError
@@ -36,14 +40,12 @@ class LoanRequestServicesError(BaseError):
 
 
 class LoanRequestServices:
-
     def __init__(self, loan_request_id):
         loan_request = LoanRequest.find_one({"id": ObjectId(loan_request_id)})
         if loan_request is None:
             raise LoanRequestNotFound()
         if loan_request.status == "PAID":
-            raise LoanRequestServicesError("Loan Already paid",
-                                           "LOAN_ALREADY_PAID")
+            raise LoanRequestServicesError("Loan Already paid", "LOAN_ALREADY_PAID")
         # we link loan request to investment here
         invest_info = Investment.get_by_loan_request(loan_request.id)
         # convert it into investment object so it easier to deal
@@ -75,8 +77,7 @@ class LoanRequestServices:
             "transaction_type": transaction_type,
             "model": "LoanRequest",
             "model_id": str(self.loan_request.id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
         return transaction_payload
 
@@ -87,10 +88,13 @@ class LoanRequestServices:
         transaction_type = "INVEST_FEE"
 
         # we extract only loan request fee that we need
-        loan_request_fee = list(filter(
-            lambda loan_request: loan_request.loan_request_id ==
-            self.loan_request.id, self.investment.loan_requests
-        ))
+        loan_request_fee = list(
+            filter(
+                lambda loan_request: loan_request.loan_request_id
+                == self.loan_request.id,
+                self.investment.loan_requests,
+            )
+        )
         fee = loan_request_fee[0].fees[-1].investor_fee
 
         send_invest_fee = {
@@ -103,8 +107,7 @@ class LoanRequestServices:
             "transaction_type": transaction_type,
             "model": "LoanRequest",
             "model_id": str(self.loan_request.id),
-            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] +
-            "_REQUESTED"
+            "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
         }
 
         return send_invest_fee
@@ -115,7 +118,7 @@ class LoanRequestServices:
         TransactionTask().send_transaction.apply_async(
             kwargs=receive_repayment_payload,
             queue="transaction",
-            link=TransactionTask().map_transaction.s().set(queue="transaction")
+            link=TransactionTask().map_transaction.s().set(queue="transaction"),
         )
         return receive_repayment_payload
 
@@ -126,24 +129,22 @@ class LoanRequestServices:
         # adding queue id to loan request status so we know its already
         # scheduled
         queue_id = schedule_transaction(**send_invest_payload)
-        self.loan_request.list_of_status.append({
-            "queue_id": queue_id,
-            "status": "SEND_FEE_TO_ESCROW_QUEUED"
-        })
+        self.loan_request.list_of_status.append(
+            {"queue_id": queue_id, "status": "SEND_FEE_TO_ESCROW_QUEUED"}
+        )
         self.loan_request.commit()
 
         return send_invest_payload
 
-    def send_borrower_notif(self, product_id, email, user_id,
-                            loan_request_code, amount, device_id):
+    def send_borrower_notif(
+        self, product_id, email, user_id, loan_request_code, amount, device_id
+    ):
         # trigger email to borrower
         current_time = datetime.utcnow()
         current_local_time = LOCAL_TIMEZONE.localize(current_time)
         repayment_date = current_local_time.strftime("%Y-%m-%d %H:%M")
         # get product name
-        product = Product.find_one(
-            {"_id": product_id}
-        )
+        product = Product.find_one({"_id": product_id})
         # send repayment email to borrower
         send_notif(
             recipient=email,
@@ -154,19 +155,16 @@ class LoanRequestServices:
                 "repayment_date": repayment_date,
                 "loan_request_code": loan_request_code,
                 "repayment_amount": amount,
-                "product": product.product_name
+                "product": product.product_name,
             },
-            device_token=device_id
+            device_token=device_id,
         )
 
     def process_repayment(self):
         """ process repayment """
         # disable repayment virtual account
         VirtualAccountTask().disable_va.apply_async(
-            kwargs={
-                "model_name": "LoanRequest",
-                "model_id": str(self.loan_request.id)
-            },
+            kwargs={"model_name": "LoanRequest", "model_id": str(self.loan_request.id)},
             queue="virtual_account",
         )
 
@@ -189,15 +187,18 @@ class LoanRequestServices:
             self.borrower.user_id,
             self.loan_request.loan_request_code,
             self.loan_request.requested_loan_request,
-            self.user.device_id
+            self.user.device_id,
         )
 
         # later after we receive callback that invest successfully sent we
         # increase the escrow balance
         # after escrow balance we have enough balance to repay investor
 
-        return {
-            "status": "PROCESS_REPAYMENT",
-            "receive_repayment": receive_repayment_payload,
-            "send_invest": send_invest_payload
-        }, 202
+        return (
+            {
+                "status": "PROCESS_REPAYMENT",
+                "receive_repayment": receive_repayment_payload,
+                "send_invest": send_invest_payload,
+            },
+            202,
+        )

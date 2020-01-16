@@ -13,15 +13,11 @@ from app.api.callback import api
 from app.api.serializer import (
     BniVaCallbackSchema,
     BniRdlCallbackSchema,
-    TransactionCallbackSchema
+    TransactionCallbackSchema,
 )
 
 # services
-from app.api.callback.modules.services import (
-    top_up_rdl,
-    top_up_va,
-    update_transaction
-)
+from app.api.callback.modules.services import top_up_rdl, top_up_va, update_transaction
 
 from app.api.lib.helper import decrypt, DecryptError
 
@@ -47,11 +43,7 @@ class Callback(Routes):
 
     def preprocess(self, payload):
         try:
-            payload = decrypt(
-                self.client_id,
-                self.secret_key,
-                payload["data"]
-            )
+            payload = decrypt(self.client_id, self.secret_key, payload["data"])
         except DecryptError:
             # raise error
             raise BadRequest(
@@ -81,7 +73,7 @@ class BNIRdlDepositCallback(Callback):
         response = top_up_rdl(
             rdl_account=request_data["account_number"],
             amount=request_data["payment_amount"],
-            journal_no=request_data["journal_number"]
+            journal_no=request_data["journal_number"],
         )
         return response
 
@@ -107,7 +99,7 @@ class BNIVaDepositCallback(Callback):
             account_no=request_data["virtual_account"],
             amount=request_data["trx_amount"],
             payment_ntb=request_data["payment_ntb"],
-            va_type=request_data["va_type"]
+            va_type=request_data["va_type"],
         )
         return response
 
