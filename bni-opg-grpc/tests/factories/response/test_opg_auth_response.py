@@ -5,12 +5,8 @@
 from unittest.mock import Mock
 import pytest
 
-from rpc.factories.response.v1.response import (
-    BNIOpgAuthResponse
-)
-from rpc.lib.core.response import (
-    ResponseError
-)
+from rpc.factories.response.v1.response import BNIOpgAuthResponse
+from rpc.lib.core.response import ResponseError
 
 from tests.reusable.setup import create_http_response
 

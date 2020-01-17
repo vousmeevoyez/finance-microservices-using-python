@@ -1,10 +1,7 @@
 import json
 import grpc
 
-from autogen import (
-    transfer_pb2_grpc,
-    transfer_pb2
-)
+from autogen import transfer_pb2_grpc, transfer_pb2
 
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.json_format import Parse

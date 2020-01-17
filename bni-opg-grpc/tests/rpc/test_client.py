@@ -1,10 +1,7 @@
 import pytest
 import grpc
 
-from autogen import (
-    transfer_pb2,
-    transfer_pb2_grpc
-)
+from autogen import transfer_pb2, transfer_pb2_grpc
 
 
 def test_transfer_inhouse(setup_local_client):

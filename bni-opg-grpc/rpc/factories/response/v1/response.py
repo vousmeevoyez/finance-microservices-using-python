@@ -4,10 +4,7 @@
     module to handle HTTP Response from BNI OPG
 """
 from rpc.lib.core.response import AsyncHTTPResponse
-from rpc.lib.core.response import (
-    FailedResponseError,
-    ResponseError
-)
+from rpc.lib.core.response import FailedResponseError, ResponseError
 
 
 class BNIOpgAuthResponse(AsyncHTTPResponse):
@@ -39,9 +36,7 @@ class BNIOpgResponse(AsyncHTTPResponse):
                             # check response code here
                             if value != "0001":
                                 # mark request as failed
-                                raise FailedResponseError(
-                                    original_exception=response
-                                )
+                                raise FailedResponseError(original_exception=response)
         return True
 
     def validate_data(self):

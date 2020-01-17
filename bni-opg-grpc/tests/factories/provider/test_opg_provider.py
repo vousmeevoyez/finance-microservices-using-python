@@ -2,16 +2,12 @@ import pytest
 from asynctest import CoroutineMock, patch
 
 from rpc.lib.core.provider import ProviderError
-from rpc.factories.provider.v1.provider import (
-    BNIOpgProvider,
-    BNIOpgProviderBuilder
-)
+from rpc.factories.provider.v1.provider import BNIOpgProvider, BNIOpgProviderBuilder
 
 from rpc.config import BNI_OPG
 
 
 class TestBNIOpgProviderBuilder:
-
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.request")
     async def test_authorize(self, mock_request):
@@ -19,12 +15,13 @@ class TestBNIOpgProviderBuilder:
             "access_token": "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2",
             "token_type": "Bearer",
             "expires_in": 3599,
-            "scope": "resource.WRITE resource.READ"
+            "scope": "resource.WRITE resource.READ",
         }
 
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         builder = BNIOpgProviderBuilder()
         result = await builder.authorize()
@@ -36,7 +33,10 @@ class TestMockBNIOpgProvider:
 
     def test_api_name_to_full_url(self):
         result = BNIOpgProvider("some-access-token").api_name_to_full_url("GET_BALANCE")
-        assert result == "https://apidev.bni.co.id:8066/H2H/v2/getbalance?access_token=some-access-token"
+        assert (
+            result
+            == "https://apidev.bni.co.id:8066/H2H/v2/getbalance?access_token=some-access-token"
+        )
 
     def test_prepare_request(self):
         """ make sure by passing api_name we get the designated request object
@@ -44,7 +44,7 @@ class TestMockBNIOpgProvider:
         payload = {
             "api_name": "GET_BALANCE",
             "method": "POST",
-            "payload": {"somepayload": "test"}
+            "payload": {"somepayload": "test"},
         }
         result = BNIOpgProvider("some-access-token").prepare_request(**payload)
         request = result.to_representation()
@@ -70,8 +70,9 @@ class TestMockBNIOpgProvider:
             }
         }
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
         result = await BNIOpgProvider(access_token).get_balance("123456")
@@ -91,12 +92,13 @@ class TestMockBNIOpgProvider:
                     "errorMessage": "Unknown Output",
                     "responseMessage": "Request failed",
                     "responseTimestamp": "2017-02-24T14:12:25.871Z",
-                }
+                },
             }
         }
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -124,8 +126,9 @@ class TestMockBNIOpgProvider:
             }
         }
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
         result = await BNIOpgProvider(access_token).get_inhouse_inquiry("123456")
@@ -154,8 +157,9 @@ class TestMockBNIOpgProvider:
             }
         }
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
         with pytest.raises(ProviderError):
@@ -197,8 +201,9 @@ class TestMockBNIOpgProvider:
         }
 
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -240,8 +245,9 @@ class TestMockBNIOpgProvider:
         }
 
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -278,10 +284,10 @@ class TestMockBNIOpgProvider:
 
         data = {"request_ref": "20170227000000000020"}
 
-
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -312,10 +318,10 @@ class TestMockBNIOpgProvider:
 
         data = {"request_ref": "20170227000000000020"}
 
-
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -349,10 +355,10 @@ class TestMockBNIOpgProvider:
             "destination": "3333333333",
         }
 
-
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -388,10 +394,10 @@ class TestMockBNIOpgProvider:
             "destination": "3333333333",
         }
 
-
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -429,10 +435,10 @@ class TestMockBNIOpgProvider:
             "transfer_ref": "100000000024",
         }
 
-
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -470,8 +476,9 @@ class TestMockBNIOpgProvider:
         }
 
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -504,12 +511,13 @@ class TestMockBNIOpgProvider:
             "source": "113183203",
             "destination": "115471119",
             "amount": "100500",
-            "bank_code": "009"
+            "bank_code": "009",
         }
 
         mock_request.return_value.__aenter__.return_value.status = 200
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 
@@ -541,8 +549,9 @@ class TestMockBNIOpgProvider:
         }
 
         mock_request.return_value.__aenter__.return_value.status = 400
-        mock_request.return_value.__aenter__.return_value.json = \
-        CoroutineMock(return_value=expected_value)
+        mock_request.return_value.__aenter__.return_value.json = CoroutineMock(
+            return_value=expected_value
+        )
 
         access_token = "x3LyfeWKbeaARhd2PfU4F4OeNi43CrDFdi6XnzScKIuk5VmvFiq0B2"
 

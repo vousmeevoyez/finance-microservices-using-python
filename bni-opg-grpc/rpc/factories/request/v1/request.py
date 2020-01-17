@@ -14,6 +14,7 @@ from rpc.lib.core.request import HTTPRequest
 
 class BNIOpgAuthRequest(HTTPRequest):
     """ Request Class for handling BNI OPG Auth """
+
     username = BNI_OPG["USERNAME"]
     password = BNI_OPG["PASSWORD"]
     secret_key = BNI_OPG["SECRET_API_KEY"]

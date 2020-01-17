@@ -12,12 +12,12 @@ from expiringdict import ExpiringDict
 from rpc.config import BNI_OPG
 
 from rpc.serializer import TransferInquirySchema
-from rpc.lib.core.provider import (
-    BaseProvider
-)
+from rpc.lib.core.provider import BaseProvider
+
 
 def ref_number(actual_func):
     """ decorator func to help generate ref_number if its missing """
+
     @functools.lru_cache(maxsize=128)
     async def generate_ref_number(*args, **kwargs):
         # if ref number is not supplied, we auto generate it!
@@ -37,6 +37,7 @@ def ref_number(actual_func):
             kwargs["ref_number"] = ref_number
         # end if
         return await actual_func(*args, **kwargs)
+
     return generate_ref_number
 
 
@@ -62,9 +63,7 @@ class BNIOpgProvider(BaseProvider):
             extend base prepare_request from BaseProvider so instead passing a url
             we just need to pass api_name
         """
-        self.request_contract.url = self.api_name_to_full_url(
-            kwargs["api_name"]
-        )
+        self.request_contract.url = self.api_name_to_full_url(kwargs["api_name"])
         self.request_contract.method = kwargs["method"]
         self.request_contract.payload = kwargs["payload"]
         return self.request_contract
@@ -79,9 +78,7 @@ class BNIOpgProvider(BaseProvider):
         payload = {
             "api_name": "GET_BALANCE",
             "method": "POST",
-            "payload": {
-                "accountNo": account_no
-            }
+            "payload": {"accountNo": account_no},
         }
 
         post_resp = await self.execute(**payload)
@@ -105,9 +102,7 @@ class BNIOpgProvider(BaseProvider):
         payload = {
             "api_name": "GET_INHOUSE_INQUIRY",
             "method": "POST",
-            "payload": {
-                "accountNo": account_no
-            }
+            "payload": {"accountNo": account_no},
         }
 
         post_resp = await self.execute(**payload)
@@ -135,10 +130,20 @@ class BNIOpgProvider(BaseProvider):
     # end def
 
     @ref_number
-    async def do_payment(self, source, destination, amount,
-                         ref_number=None, method="0", email="",
-                         clearing_code="", account_name="", address="",
-                         charge_mode="", notes="?"):
+    async def do_payment(
+        self,
+        source,
+        destination,
+        amount,
+        ref_number=None,
+        method="0",
+        email="",
+        clearing_code="",
+        account_name="",
+        address="",
+        charge_mode="",
+        notes="?",
+    ):
         """
             function to do interbank payment
             using LLG / Clearing Method
@@ -170,7 +175,7 @@ class BNIOpgProvider(BaseProvider):
                 "beneficiaryAddress1": address,
                 "beneficiaryAddress2": "",
                 "chargingModelId": charge_mode,  # whos pay for it (OUR/BEN/SHA)
-            }
+            },
         }
 
         post_resp = await self.execute(**payload)
@@ -182,7 +187,7 @@ class BNIOpgProvider(BaseProvider):
             "source": response_data["debitAccountNo"],
             "destination": response_data["creditAccountNo"],
             "amount": response_data["valueAmount"],
-            "uuid": response_data["customerReference"]
+            "uuid": response_data["customerReference"],
         }
         return response
 
@@ -198,9 +203,7 @@ class BNIOpgProvider(BaseProvider):
         payload = {
             "api_name": "GET_PAYMENT_STATUS",
             "method": "POST",
-            "payload": {
-                "customerReferenceNumber": request_ref
-            }
+            "payload": {"customerReferenceNumber": request_ref},
         }
 
         post_resp = await self.execute(**payload)
@@ -211,11 +214,19 @@ class BNIOpgProvider(BaseProvider):
         ]
         response = TransferInquirySchema().dump(response_data)
         return response
+
     # end def
 
-    async def transfer(self, source, destination, bank_code,
-                       amount, notes=None, inquiry_uuid=None,
-                       transfer_uuid=None):
+    async def transfer(
+        self,
+        source,
+        destination,
+        bank_code,
+        amount,
+        notes=None,
+        inquiry_uuid=None,
+        transfer_uuid=None,
+    ):
         """
             function that wrap interbank inquiry do_payment and interbank payment
             args :
@@ -225,26 +236,33 @@ class BNIOpgProvider(BaseProvider):
         # if bank code is BNI then use do_payment
         if bank_code == "009":
             inhouse_response = await self.do_payment(
-                source=source, destination=destination, amount=amount,
-                ref_number=transfer_uuid
+                source=source,
+                destination=destination,
+                amount=amount,
+                ref_number=transfer_uuid,
             )
             response["response_uuid"] = inhouse_response["uuid"]
         else:
             interbank_response = await self.get_interbank_inquiry(
-                source=source, destination=destination,
-                bank_code=bank_code, ref_number=inquiry_uuid
+                source=source,
+                destination=destination,
+                bank_code=bank_code,
+                ref_number=inquiry_uuid,
             )
             interbank_response.pop("uuid")
             interbank_response["amount"] = amount
             interbank_response["bank_code"] = bank_code
 
-            interbank_payment_response = await self.interbank_payment(**interbank_response)
+            interbank_payment_response = await self.interbank_payment(
+                **interbank_response
+            )
             response["response_uuid"] = interbank_payment_response["uuid"]
         return response
 
     @ref_number
-    async def get_interbank_inquiry(self, source, bank_code, destination,
-                                    ref_number=None):
+    async def get_interbank_inquiry(
+        self, source, bank_code, destination, ref_number=None
+    ):
         """
             function to check inquiry OUTSIDE BNI like BCA, etc...
             args :
@@ -258,8 +276,8 @@ class BNIOpgProvider(BaseProvider):
                 "customerReferenceNumber": ref_number,
                 "accountNum": source,
                 "destinationBankCode": bank_code,
-                "destinationAccountNum": destination
-            }
+                "destinationAccountNum": destination,
+            },
         }
 
         # post here
@@ -271,17 +289,25 @@ class BNIOpgProvider(BaseProvider):
             "destination": response_data["destinationAccountNum"],
             "destination_name": response_data["destinationAccountName"],
             "bank_name": response_data["destinationBankName"],
-            "transfer_ref": response_data["retrievalReffNum"], # IMPORTANT!
-            "uuid": ref_number
+            "transfer_ref": response_data["retrievalReffNum"],  # IMPORTANT!
+            "uuid": ref_number,
         }
         return response
 
     # end def
 
     @ref_number
-    async def interbank_payment(self, source, destination, destination_name,
-                                bank_code, bank_name, amount, transfer_ref,
-                                ref_number=None):
+    async def interbank_payment(
+        self,
+        source,
+        destination,
+        destination_name,
+        bank_code,
+        bank_name,
+        amount,
+        transfer_ref,
+        ref_number=None,
+    ):
         """
             function to transfer to external bank like bca, mandiri, etc..
             args :
@@ -300,7 +326,7 @@ class BNIOpgProvider(BaseProvider):
                 "destinationBankName": bank_name,
                 "accountNum": source,
                 "retrievalReffNum": transfer_ref,
-            }
+            },
         }
 
         # should log request and response
@@ -312,7 +338,7 @@ class BNIOpgProvider(BaseProvider):
         response = {
             "destination": response_data["destinationAccountNum"],
             "destination_name": response_data["destinationAccountName"],
-            "uuid": response_data["customerReffNum"]
+            "uuid": response_data["customerReffNum"],
         }
         return response
 
@@ -340,9 +366,7 @@ class BNIOpgProviderBuilder(BaseProvider):
         return full_url
 
     def prepare_request(self, **kwargs):
-        self.request_contract.url = self.api_name_to_full_url(
-            kwargs["api_name"]
-        )
+        self.request_contract.url = self.api_name_to_full_url(kwargs["api_name"])
         self.request_contract.method = kwargs["method"]
         self.request_contract.payload = kwargs["payload"]
         return self.request_contract
@@ -351,7 +375,7 @@ class BNIOpgProviderBuilder(BaseProvider):
         payload = {
             "api_name": "GET_TOKEN",
             "method": "POST",
-            "payload": {"grant_type": "client_credentials"}
+            "payload": {"grant_type": "client_credentials"},
         }
 
         try:
