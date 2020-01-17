@@ -96,7 +96,7 @@ MOBILE_TEMPLATES = {
         "CONTENT": {
             "LOAN_REQUEST_SEND": "Pengajuan pinjaman $loan_request_code Anda sudah diterima oleh Tim Analis Kami dan akan diproses lebih lanjut.",
             "LOAN_REQUEST_APPROVE": "Pengajuan Pinjaman $loan_request_code Anda telah disetujui, dan akan segera dicairkan dalam 1x24 jam.",
-            "LOAN_REQUEST_REJECT": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loanRequestCode tidak disetujui karena belum memenuhi Syarat dan Ketentuan yang berlaku.",
+            "LOAN_REQUEST_REJECT": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loan_request_code tidak disetujui karena belum memenuhi Syarat dan Ketentuan yang berlaku.",
             "LOAN_REQUEST_DISBURSE": "Selamat! Pinjaman yang Anda ajukan telah dicairkan ke rekening MODANAKU.",
             "LOAN_REQUEST_REPAYMENT": "Terima kasih, Anda telah berhasil melakukan pembayaran pinjaman: $product - $loan_request_code sejumlah $repayment_amount",
             "REMINDER_BEFORE_DUEDATE": "Pinjaman Anda $loan_request_code akan segera jatuh tempo. Pastikan saldo MODANAKU cukup untuk membayar jumlah pinjaman untuk menghindari denda keterlambatan.",
