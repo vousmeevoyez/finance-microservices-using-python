@@ -539,10 +539,9 @@ class SchedulerTask(BaseTask):
                     "$match": {
                         "schedule_id": schedule_id,
                         "status": "WAITING",
-                        "ca": {
-                            "$gte": start_range,
-                            "$lte": end_range
-                        }
+                        "transaction_info": {
+                            "$ne": None
+                        },
                     }
                 }
             ]))
