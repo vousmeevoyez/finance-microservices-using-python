@@ -1,12 +1,10 @@
 import pytest
 import grpc
 
-from autogen import (
-    virtual_account_pb2,
-    virtual_account_pb2_grpc
-)
+from autogen import virtual_account_pb2, virtual_account_pb2_grpc
 
 from google.protobuf.json_format import Parse
+
 
 def test_create_va(setup_local_client):
     stub = virtual_account_pb2_grpc.VirtualAccountStub(setup_local_client)
@@ -18,6 +16,7 @@ def test_create_va(setup_local_client):
 
     response = stub.CreateVa(request)
     print(response)
+
 
 def test_inquiry_va(setup_local_client, setup_dummy_va):
     stub = virtual_account_pb2_grpc.VirtualAccountStub(setup_local_client)

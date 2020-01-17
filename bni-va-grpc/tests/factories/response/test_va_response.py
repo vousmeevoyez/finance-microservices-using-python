@@ -15,7 +15,7 @@ from rpc.factories.response.v1.response import (
     BNIDebitEcollectionResponse,
     InvalidResponseError,
     FailedResponseError,
-    ResponseError
+    ResponseError,
 )
 
 from tests.reusable.setup import create_http_response
@@ -37,10 +37,9 @@ async def test_to_representation_success():
         expected_data,
     )
 
-    mock_http_response = create_http_response(200, {
-        "status": "000",
-        "data": encrypted_data
-    })
+    mock_http_response = create_http_response(
+        200, {"status": "000", "data": encrypted_data}
+    )
 
     response = BNICreditEcollectionResponse()
     await response.set(mock_http_response)
@@ -57,16 +56,9 @@ async def test_decrypt():
     }
 
     # purposely use random key
-    encrypted_data = encrypt(
-        "99099",
-        "some-random-secret-key",
-        expected_data,
-    )
+    encrypted_data = encrypt("99099", "some-random-secret-key", expected_data)
 
-    response = {
-        "status": "000",
-        "data": encrypted_data
-    }
+    response = {"status": "000", "data": encrypted_data}
 
     mock_http_response = create_http_response(200, response)
 
@@ -115,6 +107,7 @@ async def test_validate_bni_status():
         bni_response = BNICreditEcollectionResponse()
         await bni_response.set(mock_http_response)
         bni_response.validate_bni_status(response)
+
 
 @pytest.mark.asyncio
 async def test_to_representation_status_error():

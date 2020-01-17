@@ -8,6 +8,7 @@ import os
 
 class Config:
     """ This is base class for configuration """
+
     DEBUG = False
 
     # mongodb://[username:password@]host1[:port1][,...hostN[:portN]]][/[database][?options]]
@@ -19,6 +20,7 @@ class Config:
 
 class DevelopmentConfig(Config):
     """ This is class for development configuration """
+
     DEBUG = True
 
     MONGO_DBNAME = Config.MONGO_DBNAME
@@ -27,6 +29,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     """ This is class for testing configuration """
+
     DEBUG = True
     TESTING = True
 
@@ -40,6 +43,7 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     """ This is class for production configuration """
+
     DEBUG = False
 
     MONGO_DBNAME = Config.MONGO_URI
@@ -51,8 +55,4 @@ class ProductionConfig(Config):
     SENTRY_CONFIG["dsn"] = os.environ.get("SENTRY_DSN")
 
 
-CONFIG_BY_NAME = dict(
-    dev=DevelopmentConfig,
-    test=TestingConfig,
-    prod=ProductionConfig
-)
+CONFIG_BY_NAME = dict(dev=DevelopmentConfig, test=TestingConfig, prod=ProductionConfig)

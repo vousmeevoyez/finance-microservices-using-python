@@ -13,11 +13,7 @@ class DecryptError(Exception):
 
 def encrypt(client_id, secret_key, data):
     """ encrypt data using BNI Client ID + Secret + data """
-    return BniEnc().encrypt(
-        json.dumps(data),
-        client_id,
-        secret_key
-    ).decode("utf-8")
+    return BniEnc().encrypt(json.dumps(data), client_id, secret_key).decode("utf-8")
 
 
 def decrypt(client_id, secret_key, data):

@@ -15,7 +15,7 @@ BNI_ECOLLECTION = {
     "CREDIT_SECRET_KEY": os.getenv("BNI_VA_CREDIT_SECRET_KEY")
     or "0281c0c18992b97ae79efb2ac99ef529",
     "CREDIT_CLIENT_ID": os.getenv("BNI_VA_CREDIT_CLIENT_ID") or "99096",
-    "CREDIT_VA_EXPIRE": os.getenv("BNI_VA_CREDIT_EXPIRE") or "435000", # hours
+    "CREDIT_VA_EXPIRE": os.getenv("BNI_VA_CREDIT_EXPIRE") or "435000",  # hours
     "VA_PREFIX": os.getenv("BNI_VA_PREFIX") or "988",
     "VA_LENGTH": 16,
     "UPDATE": "updatebilling",

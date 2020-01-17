@@ -53,8 +53,7 @@ class BNIVaProvider(BaseProvider):
         self.request_contract.payload = kwargs["payload"]
 
     async def create_va(
-        self, trx_id, amount, name, phone_number, account_no, expired_at,
-        **ignored
+        self, trx_id, amount, name, phone_number, account_no, expired_at, **ignored
     ):
         """
             Function to Create Virtual Account on BNI
@@ -80,7 +79,7 @@ class BNIVaProvider(BaseProvider):
         }
 
         result = await self.execute(**payload)
-        response = GeneralVaSchema().dump(result) 
+        response = GeneralVaSchema().dump(result)
         return response
 
     async def get_inquiry(self, trx_id, **ignored):
@@ -96,7 +95,7 @@ class BNIVaProvider(BaseProvider):
         }
 
         result = await self.execute(**payload)
-        response = InquiryVaSchema().dump(result) 
+        response = InquiryVaSchema().dump(result)
         return response
 
     async def update_va(self, trx_id, amount, name, expired_at, **ignored):
@@ -119,5 +118,5 @@ class BNIVaProvider(BaseProvider):
 
         result = await self.execute(**payload)
         # convert to known field
-        response = GeneralVaSchema().dump(result) 
+        response = GeneralVaSchema().dump(result)
         return response

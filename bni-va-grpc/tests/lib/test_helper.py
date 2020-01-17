@@ -14,9 +14,15 @@ def test_encrypt_decrypt():
         "virtual_account": "9889909667037879",
         "datetime_expired": "2019-09-12 11:45:07",
     }
-    result = encrypt(BNI_ECOLLECTION["CREDIT_CLIENT_ID"],
-                     BNI_ECOLLECTION["CREDIT_SECRET_KEY"], payload)
+    result = encrypt(
+        BNI_ECOLLECTION["CREDIT_CLIENT_ID"],
+        BNI_ECOLLECTION["CREDIT_SECRET_KEY"],
+        payload,
+    )
 
-    result = decrypt(BNI_ECOLLECTION["CREDIT_CLIENT_ID"],
-                     BNI_ECOLLECTION["CREDIT_SECRET_KEY"], result)
+    result = decrypt(
+        BNI_ECOLLECTION["CREDIT_CLIENT_ID"],
+        BNI_ECOLLECTION["CREDIT_SECRET_KEY"],
+        result,
+    )
     assert result == payload

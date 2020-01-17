@@ -2,18 +2,13 @@
     Handle Serialization from BNI Ecollection
 """
 from datetime import datetime
-from marshmallow import (
-    Schema,
-    fields,
-    EXCLUDE,
-    post_load,
-    ValidationError
-)
+from marshmallow import Schema, fields, EXCLUDE, post_load, ValidationError
 from rpc.models import VirtualAccount, generate_expired_at
 
 
 class CreateVaSchema(Schema):
     """ schema used for created VA """
+
     va_type = fields.Str(missing="CREDIT")
     amount = fields.Int(missing=0)
     name = fields.Str(required=True)
@@ -39,6 +34,7 @@ class CreateVaSchema(Schema):
 
 class UpdateVaSchema(Schema):
     """ schema used for updating VA """
+
     account_no = fields.Str(required=True)
     trx_id = fields.Str()
     amount = fields.Int(missing=0)
@@ -54,6 +50,7 @@ class UpdateVaSchema(Schema):
 
 class InquiryVaSchema(Schema):
     """ schema for serialize / deserialize va inquiry from BNI """
+
     trx_id = fields.Str(dump_only=True)
     virtual_account = fields.Str(data_key="account_no")
     trx_amount = fields.Int(dump_only=True)
@@ -79,5 +76,6 @@ class InquiryVaSchema(Schema):
 
 class GeneralVaSchema(Schema):
     """ schema for serialize / deserialize va from BNI """
+
     trx_id = fields.Str()
     virtual_account = fields.Str(data_key="account_no")

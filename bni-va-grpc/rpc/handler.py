@@ -9,15 +9,12 @@ from google.protobuf.json_format import Parse
 from autogen import virtual_account_pb2_grpc
 from autogen import virtual_account_pb2
 
-from rpc.serializer import (
-    CreateVaSchema, UpdateVaSchema
-)
+from rpc.serializer import CreateVaSchema, UpdateVaSchema
 from rpc.services import BNIVaServices
 from rpc.services import ServicesError
 
 
 class VirtualAccount(virtual_account_pb2_grpc.VirtualAccountServicer):
-
     async def CreateVa(self, request, context):
         """ handle RPC For creating VA """
         # initialize response
@@ -34,9 +31,9 @@ class VirtualAccount(virtual_account_pb2_grpc.VirtualAccountServicer):
 
         # execute actual logic through services
         try:
-            services_result = await BNIVaServices(
-                request.va_type
-            ).create_va(serialized_payload)
+            services_result = await BNIVaServices(request.va_type).create_va(
+                serialized_payload
+            )
         except ServicesError as error:
             context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
             context.set_details(error.original_exception)
@@ -71,9 +68,9 @@ class VirtualAccount(virtual_account_pb2_grpc.VirtualAccountServicer):
             context.set_details(error.messages)
 
         try:
-            result = await BNIVaServices(
-                request.va_type, request.account_no
-            ).update_va(serialized_payload)
+            result = await BNIVaServices(request.va_type, request.account_no).update_va(
+                serialized_payload
+            )
         except ServicesError as error:
             context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
             context.set_details(error.original_exception)

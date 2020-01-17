@@ -7,16 +7,12 @@ from flask import Flask
 
 from mongoengine import connect
 
-from rpc.config import (
-    config
-)
+from rpc.config import config
 
 
 def db_connection(app):
     """ initialize connection to mongo db"""
-    connect(
-        host=app.config['MONGO_URI']
-    )
+    connect(host=app.config["MONGO_URI"])
 
 
 def register_extension(app):

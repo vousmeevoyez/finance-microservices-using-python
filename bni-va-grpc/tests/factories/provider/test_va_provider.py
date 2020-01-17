@@ -7,9 +7,7 @@ from asynctest import CoroutineMock, patch
 
 from rpc.lib.core.provider import ProviderError
 from rpc.lib.helper import encrypt
-from rpc.factories.provider.v1.provider import (
-    BNIVaProvider
-)
+from rpc.factories.provider.v1.provider import BNIVaProvider
 
 from rpc.config.external import BNI_ECOLLECTION
 
@@ -18,12 +16,14 @@ def encrypt_response(data, types):
     encrypted_data = encrypt(
         BNI_ECOLLECTION[f"{types}_CLIENT_ID"],
         BNI_ECOLLECTION[f"{types}_SECRET_KEY"],
-        data
+        data,
     )
     return encrypted_data
 
 
 """ All test case for testing remote call utility"""
+
+
 @pytest.mark.asyncio
 @patch("aiohttp.ClientSession.request")
 async def test_mock_create_va_success(mock_post):
@@ -39,15 +39,13 @@ async def test_mock_create_va_success(mock_post):
 
     # expected value from BNI server
     plain_data = {"trx_id": "1234", "virtual_account": "000211"}
-    expected_data = {
-        "status": "000",
-        "data": encrypt_response(plain_data, "CREDIT"),
-    }
+    expected_data = {"status": "000", "data": encrypt_response(plain_data, "CREDIT")}
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 200
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     provider = BNIVaProvider()
     provider.set("CREDIT")
@@ -79,13 +77,15 @@ async def test_mock_create_va_failed(mock_post):
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 400
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     with pytest.raises(ProviderError):
         provider = BNIVaProvider()
         provider.set("CREDIT")
         await provider.create_va(**data)
+
 
 @pytest.mark.asyncio
 @patch("aiohttp.ClientSession.request")
@@ -110,9 +110,9 @@ async def test_mock_create_va_cardless_success(mock_post):
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 200
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
-
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     provider = BNIVaProvider()
     provider.set("DEBIT")
@@ -142,8 +142,9 @@ async def test_mock_create_va_cardless_failed(mock_post):
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 400
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     with pytest.raises(ProviderError):
         provider = BNIVaProvider()
@@ -183,16 +184,13 @@ async def test_mock_get_inquiry_success(mock_post):
         "datetime_last_updated_iso8601": "2018-10-26T06:43:25+07:00",
     }
 
-    expected_data = {
-        "status": "000",
-        "data": encrypt_response(plain_data, "CREDIT"),
-    }
+    expected_data = {"status": "000", "data": encrypt_response(plain_data, "CREDIT")}
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 200
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
-
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     provider = BNIVaProvider()
     provider.set("CREDIT")
@@ -214,6 +212,7 @@ async def test_mock_get_inquiry_success(mock_post):
     assert result["description"] == plain_data["description"]
     assert result["billing_type"] == plain_data["billing_type"]
 
+
 @pytest.mark.asyncio
 @patch("aiohttp.ClientSession.request")
 async def test_mock_get_inquiry_failed(mock_post):
@@ -226,14 +225,16 @@ async def test_mock_get_inquiry_failed(mock_post):
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 400
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     # dummy trx id
     with pytest.raises(ProviderError):
         provider = BNIVaProvider()
         provider.set("CREDIT")
         await provider.get_inquiry("123")
+
 
 @pytest.mark.asyncio
 @patch("aiohttp.ClientSession.request")
@@ -249,26 +250,22 @@ async def test_mock_update_va_success(mock_post):
         "expired_at": datetime.now(),
     }
 
-    plain_data = {
-        "trx_id": "627493687",
-        "virtual_account": "9889909918102605",
-    }
+    plain_data = {"trx_id": "627493687", "virtual_account": "9889909918102605"}
 
-    expected_data = {
-        "status": "000",
-        "data": encrypt_response(plain_data, "CREDIT"),
-    }
+    expected_data = {"status": "000", "data": encrypt_response(plain_data, "CREDIT")}
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 200
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     provider = BNIVaProvider()
     provider.set("CREDIT")
     result = await provider.update_va(**data)
     assert result["trx_id"] == plain_data["trx_id"]
     assert result["account_no"] == plain_data["virtual_account"]
+
 
 @pytest.mark.asyncio
 @patch("aiohttp.ClientSession.request")
@@ -288,8 +285,9 @@ async def test_mock_update_va_failed(mock_post):
 
     # replace return value using expected value here
     mock_post.return_value.__aenter__.return_value.status = 400
-    mock_post.return_value.__aenter__.return_value.json = \
-    CoroutineMock(return_value=expected_data)
+    mock_post.return_value.__aenter__.return_value.json = CoroutineMock(
+        return_value=expected_data
+    )
 
     with pytest.raises(ProviderError):
         provider = BNIVaProvider()

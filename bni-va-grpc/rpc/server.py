@@ -8,9 +8,7 @@ import grpc
 
 from rpc.lib.core.async_server import AsyncioExecutor
 
-from autogen import (
-    virtual_account_pb2_grpc
-)
+from autogen import virtual_account_pb2_grpc
 
 from rpc.handler import VirtualAccount
 

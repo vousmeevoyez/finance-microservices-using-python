@@ -6,13 +6,7 @@ import random
 from datetime import datetime, timedelta
 import pytz
 
-from mongoengine import (
-    Document,
-    StringField,
-    IntField,
-    DateTimeField,
-    fields
-)
+from mongoengine import Document, StringField, IntField, DateTimeField, fields
 from rpc.config.external import BNI_ECOLLECTION, CUSTOM_PREFIX
 
 TIMEZONE = pytz.timezone("Asia/Jakarta")
@@ -34,32 +28,31 @@ def generate_past_expired_at():
 
 def update_document(document, data_dict):
     """ special method for updating document """
+
     def field_value(field, value):
 
         if field.__class__ in (fields.ListField, fields.SortedListField):
-            return [
-                field_value(field.field, item)
-                for item in value
-            ]
+            return [field_value(field.field, item) for item in value]
         if field.__class__ in (
             fields.EmbeddedDocumentField,
             fields.GenericEmbeddedDocumentField,
             fields.ReferenceField,
-            fields.GenericReferenceField
+            fields.GenericReferenceField,
         ):
             return field.document_type(**value)
         else:
             return value
 
-    [setattr(
-        document, key,
-        field_value(document._fields[key], value)
-    ) for key, value in data_dict.items()]
+    [
+        setattr(document, key, field_value(document._fields[key], value))
+        for key, value in data_dict.items()
+    ]
     return document
 
 
 class VirtualAccount(Document):
     """ Virtual Account ODM """
+
     account_no = StringField(required=True, unique=True)
     va_type = StringField(default="CREDIT")
     trx_id = StringField(required=True, unique=True)
@@ -125,12 +118,11 @@ class VirtualAccount(Document):
             if custom_prefix != "":
                 random_length = length - prefix - len(custom_prefix)
                 suffix = self.generate_suffix(random_length)
-                account_no = str(fixed) + str(client_id) + \
-                    str(custom_prefix) + str(suffix)
+                account_no = (
+                    str(fixed) + str(client_id) + str(custom_prefix) + str(suffix)
+                )
 
-            result = VirtualAccount.objects(
-                account_no=account_no
-            ).first()
+            result = VirtualAccount.objects(account_no=account_no).first()
             if result is None:
                 break
             # end if

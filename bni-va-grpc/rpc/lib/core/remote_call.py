@@ -22,13 +22,13 @@ async def fetch(request, response, connector=None):
 
     async with aiohttp.ClientSession() as session:
         try:
-            # logging request 
+            # logging request
             fetch_logger.info("REQUEST: {} - {}".format(request.method, request.url))
 
             async with session.request(**request.to_representation()) as resp:
                 data = await resp.json()
                 await response.set(resp)
-                
+
             # logging response
             fetch_logger.info("STATUS CODE: {}".format(resp.status))
             fetch_logger.info("RESPONSE: {}".format(data))

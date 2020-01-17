@@ -4,13 +4,10 @@
     Handle logic to models or external party API
 """
 
-from rpc.models import (
-    VirtualAccount,
-    generate_past_expired_at,
-    update_document
-)
+from rpc.models import VirtualAccount, generate_past_expired_at, update_document
 from rpc.factories.provider.builder import generate_provider
 from rpc.lib.core.provider import ProviderError
+
 # base error
 from rpc.lib.core.exceptions import BaseError
 
@@ -21,12 +18,11 @@ class ServicesError(BaseError):
 
 class BNIVaServices:
     """ BNI Va Services Class for gRPC"""
+
     def __init__(self, va_type, account_no=None):
         # look up account no first!
         if account_no is not None:
-            virtual_account = VirtualAccount.objects(
-                account_no=account_no
-            ).first()
+            virtual_account = VirtualAccount.objects(account_no=account_no).first()
             if virtual_account is None:
                 raise ServicesError("VA_NOT_FOUND", "Virtual Account not found")
             self.virtual_account = virtual_account
@@ -46,9 +42,7 @@ class BNIVaServices:
     async def inquiry_va(self):
         """ execute nquiry BNI Va through provider """
         try:
-            result = await self.provider.get_inquiry(
-                self.virtual_account.trx_id
-            )
+            result = await self.provider.get_inquiry(self.virtual_account.trx_id)
         except ProviderError as error:
             raise ServicesError(error.message, error.original_exception)
         return result
@@ -70,7 +64,7 @@ class BNIVaServices:
             "trx_id": self.virtual_account.trx_id,
             "amount": self.virtual_account.amount,
             "name": self.virtual_account.name,
-            "expired_at": generate_past_expired_at()
+            "expired_at": generate_past_expired_at(),
         }
 
         try:

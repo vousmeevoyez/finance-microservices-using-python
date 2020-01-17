@@ -4,12 +4,13 @@
 """
 from rpc.factories.request.v1.request import (
     BNICreditEcollectionRequest,
-    BNIDebitEcollectionRequest
+    BNIDebitEcollectionRequest,
 )
 
 
 class TestBNICreditEcollectionRequest:
     """ Test BNI E-Collection Credit Request """
+
     def test_set_payload(self):
         http_request = BNICreditEcollectionRequest()
         http_request.url = "https://apibeta.bni-ecollection.com/"
