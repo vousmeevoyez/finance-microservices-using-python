@@ -15,16 +15,13 @@ from sendgrid.helpers.mail import (
     FileName,
     FileType,
     Disposition,
-    ContentId
+    ContentId,
 )
 from sendgrid.helpers.mail.attachment import Attachment
 from sendgrid.helpers.mail.content import Content
 
 from rpc.lib.exceptions import BaseError
-from rpc.const import (
-    EMAIL_STATIC,
-    EMAIL_TEMPLATES
-)
+from rpc.const import EMAIL_STATIC, EMAIL_TEMPLATES
 
 API_KEY = os.environ.get("EMAIL_API_KEY")
 
@@ -44,8 +41,9 @@ def create_attachment(filename):
     encoded = base64.b64encode(data).decode()
     attachment = Attachment()
     attachment.file_content = FileContent(encoded)
-    attachment.file_type = \
-        FileType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    attachment.file_type = FileType(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
     attachment.file_name = FileName(filename)
     attachment.disposition = Disposition("attachment")
     attachment.content_id = ContentId("Example Content ID")
@@ -55,10 +53,7 @@ def create_attachment(filename):
 def prepare_email(sender, to, subject, html_template, attachment=None):
     """ prepare sendgrid email """
     message = Mail(
-        from_email=sender,
-        to_emails=to,
-        subject=subject,
-        html_content=html_template
+        from_email=sender, to_emails=to, subject=subject, html_content=html_template
     )
 
     if attachment is not None:
@@ -79,10 +74,7 @@ def execute(recipients, product_type, email_type, html_template, filename=None):
     sender = EMAIL_STATIC[product_type]["FROM"]
     subject = EMAIL_TEMPLATES[product_type]["SUBJECT"][email_type]
 
-    sg, mail = prepare_email(
-        sender, recipients, subject,
-        html_template, attachment
-    )
+    sg, mail = prepare_email(sender, recipients, subject, html_template, attachment)
 
     try:
         response = sg.send(mail)

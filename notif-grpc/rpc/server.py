@@ -9,15 +9,9 @@ from concurrent import futures
 
 from firebase_admin import credentials, initialize_app
 
-from autogen import (
-    email_pb2_grpc,
-    mobile_pb2_grpc
-)
+from autogen import email_pb2_grpc, mobile_pb2_grpc
 
-from rpc.services import (
-    EmailNotification,
-    MobileNotification
-)
+from rpc.services import EmailNotification, MobileNotification
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -26,9 +20,7 @@ def start(host, port):
     """ start Async gRPC Server"""
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     # register GRPC Servicer here
-    email_pb2_grpc.add_EmailNotificationServicer_to_server(
-        EmailNotification(), server
-    )
+    email_pb2_grpc.add_EmailNotificationServicer_to_server(EmailNotification(), server)
     mobile_pb2_grpc.add_MobileNotificationServicer_to_server(
         MobileNotification(), server
     )
@@ -47,5 +39,5 @@ def start(host, port):
         server.stop(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start()

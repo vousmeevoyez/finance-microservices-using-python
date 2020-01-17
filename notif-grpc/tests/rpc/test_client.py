@@ -1,12 +1,7 @@
 import pytest
 import grpc
 
-from autogen import (
-    email_pb2,
-    email_pb2_grpc,
-    mobile_pb2,
-    mobile_pb2_grpc
-)
+from autogen import email_pb2, email_pb2_grpc, mobile_pb2, mobile_pb2_grpc
 
 from google.protobuf.json_format import Parse
 

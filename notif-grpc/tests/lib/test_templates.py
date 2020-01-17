@@ -1,11 +1,7 @@
 """
     Testing Template Engine
 """
-from rpc.lib.template import (
-    TemplateEngine,
-    decode_content,
-    generate_email_template
-)
+from rpc.lib.template import TemplateEngine, decode_content, generate_email_template
 
 
 def test_decode_content(encode_data):
