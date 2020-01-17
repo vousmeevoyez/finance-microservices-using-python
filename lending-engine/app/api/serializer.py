@@ -98,7 +98,6 @@ class BniVaCallbackSchema(ma.Schema):
 class BniRdlCallbackSchema(ma.Schema):
     """ this is schema for callback object """
 
-    p2p_id = fields.Str(required=True, validate=cannot_be_blank)
     account_number = fields.Str(required=True, validate=cannot_be_blank)
     payment_amount = fields.Decimal(required=True, validate=cannot_be_blank)
     accounting_flag = fields.Str(required=True, validate=cannot_be_blank)
