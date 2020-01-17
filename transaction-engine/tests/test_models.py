@@ -62,8 +62,7 @@ def test_get_record(setup_investor, setup_investment_with_loan):
     assert result["an"]
 
     # get some loan request id from investment
-    result = PaymentEmbed._get_record(LoanRequest, loan_request.id,
-                                      "REPAYMENT")
+    result = PaymentEmbed._get_record(LoanRequest, loan_request.id, "REPAYMENT")
     assert result["bn"]
     assert result["ano"]
     assert result["at"]
@@ -178,8 +177,9 @@ def test_investment_to_escrow(
     transaction.commit()
 
 
-def test_escrow_to_modanaku(setup_flask_app, setup_escrow_wallet,
-                            setup_investment_with_loan):
+def test_escrow_to_modanaku(
+    setup_flask_app, setup_escrow_wallet, setup_investment_with_loan
+):
     """
         test disburse flow from escrow to modanaku va
     """
@@ -202,8 +202,9 @@ def test_escrow_to_modanaku(setup_flask_app, setup_escrow_wallet,
     transaction.commit()
 
 
-def test_repayment_to_escrow(setup_flask_app, setup_escrow_wallet,
-                             setup_investment_with_loan):
+def test_repayment_to_escrow(
+    setup_flask_app, setup_escrow_wallet, setup_investment_with_loan
+):
     """
         test disburse flow from escrow to modanaku va
     """
@@ -226,11 +227,7 @@ def test_repayment_to_escrow(setup_flask_app, setup_escrow_wallet,
     transaction.commit()
 
 
-def test_profit_to_escrow(
-    setup_flask_app,
-    setup_profit_wallet,
-    setup_escrow_wallet
-):
+def test_profit_to_escrow(setup_flask_app, setup_profit_wallet, setup_escrow_wallet):
     """
         test disburse flow from escrow to modanaku va
     """
@@ -252,11 +249,7 @@ def test_profit_to_escrow(
     transaction.commit()
 
 
-def test_receive_invest_fee(
-    setup_flask_app,
-    setup_profit_wallet,
-    setup_escrow_wallet
-):
+def test_receive_invest_fee(setup_flask_app, setup_profit_wallet, setup_escrow_wallet):
     transaction = Transaction(
         wallet_id=setup_escrow_wallet.id,
         source_id=setup_profit_wallet.id,
@@ -274,9 +267,7 @@ def test_receive_invest_fee(
     transaction.commit()
 
 
-def test_escrow_to_rdl(setup_flask_app,
-                       setup_investor,
-                       setup_escrow_wallet):
+def test_escrow_to_rdl(setup_flask_app, setup_investor, setup_escrow_wallet):
     """
         test disburse flow from escrow to modanaku va
     """
@@ -298,10 +289,9 @@ def test_escrow_to_rdl(setup_flask_app,
     transaction.commit()
 
 
-def test_rdl_to_withdraw(setup_flask_app,
-                         setup_investor,
-                         setup_investor_wallet,
-                         setup_escrow_wallet):
+def test_rdl_to_withdraw(
+    setup_flask_app, setup_investor, setup_investor_wallet, setup_escrow_wallet
+):
     """
         test disburse flow from escrow to modanaku va
     """

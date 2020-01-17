@@ -33,6 +33,6 @@ class User(BaseDocument):
     is_email_verified = StrField(attribute="iev")
     user_virtual_account = EmbeddedField(UserVaEmbed, attribute="uVA")
     next_payment_date = StrField(attribute="npd")
-    
+
     class Meta:
         collection_name = "lender_users"

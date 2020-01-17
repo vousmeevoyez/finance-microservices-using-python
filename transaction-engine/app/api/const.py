@@ -11,14 +11,8 @@ TYPE_TO_BANK_TYPES = {
     "INVESTOR_RDL_ACC": "RDL_ACCOUNT",
     "INVESTOR_BANK_ACC": "BANK_ACCOUNT",
     "INVESTMENT": "VIRTUAL_ACCOUNT",
-    "MODANAKU": {
-        "ACCOUNT_TYPE": "VIRTUAL_ACCOUNT",
-        "LABEL": "MODANAKU"
-    },
-    "REPAYMENT": {
-        "ACCOUNT_TYPE": "VIRTUAL_ACCOUNT",
-        "LABEL": "REPAYMENT"
-    },
+    "MODANAKU": {"ACCOUNT_TYPE": "VIRTUAL_ACCOUNT", "LABEL": "MODANAKU"},
+    "REPAYMENT": {"ACCOUNT_TYPE": "VIRTUAL_ACCOUNT", "LABEL": "REPAYMENT"},
     "ESCROW": "BANK_ACCOUNT",
     "PROFIT": "BANK_ACCOUNT",
 }
@@ -45,12 +39,18 @@ PROVIDER_ROUTES = {
 # using this variable we can put conditional based on active or passive
 # transaction
 TRANSFER_TYPES = {
-    "ACTIVE": ["INVEST", "DISBURSE", "UPFRONT_FEE", "INVEST_FEE",
-               "RECEIVE_UPFRONT_FEE", "INVEST_REPAYMENT",
-               "RECEIVE_INVEST_FEE", "WITHDRAW"],
+    "ACTIVE": [
+        "INVEST",
+        "DISBURSE",
+        "UPFRONT_FEE",
+        "INVEST_FEE",
+        "RECEIVE_UPFRONT_FEE",
+        "INVEST_REPAYMENT",
+        "RECEIVE_INVEST_FEE",
+        "WITHDRAW",
+    ],
     "INTERNAL": ["DEBIT_REFUND", "CREDIT_REFUND"],
-    "PASSIVE": ["RECEIVE_INVEST", "RECEIVE_REPAYMENT",
-                "TOP_UP_RDL"]
+    "PASSIVE": ["RECEIVE_INVEST", "RECEIVE_REPAYMENT", "TOP_UP_RDL"],
 }
 
 WORKER = {

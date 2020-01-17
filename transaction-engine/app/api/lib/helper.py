@@ -10,6 +10,7 @@ from app.api.models.wallet import Wallet
 from app.api.models.base import BankAccEmbed
 from app.api.models.loan_request import LoanRequest
 
+
 def generate_opg_ref(destination, amount=None):
     """ generate reference number matched to BNI OPG format"""
     now = datetime.utcnow()
@@ -36,6 +37,7 @@ def generate_ref_number(provider, destination, amount=None):
     if provider == "BNI_RDL":
         reference = generate_rdl_ref()
     return reference
+
 
 def str_to_class(classname):
     return getattr(sys.modules[__name__], classname)

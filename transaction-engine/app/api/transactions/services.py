@@ -17,14 +17,14 @@ class ServicesError(BaseError):
 
 
 def single_transaction(
-        wallet_id,
-        source_id,
-        source_type,
-        destination_id,
-        destination_type,
-        amount,
-        transaction_type,
-        reference_no=None
+    wallet_id,
+    source_id,
+    source_type,
+    destination_id,
+    destination_type,
+    amount,
+    transaction_type,
+    reference_no=None,
 ):
     # trigger single ledger (DEBIT/CREDIT) transaction creation
     trx = process_transaction(
@@ -35,7 +35,7 @@ def single_transaction(
         destination_type=destination_type,
         amount=amount,
         transaction_type=transaction_type,
-        reference_no=reference_no
+        reference_no=reference_no,
     )
     return trx
 
@@ -51,27 +51,28 @@ def aggregate_by_destination_id(transactions):
             trx["destination_id"],
             trx["destination_type"],
             trx["transaction_type"],
-            trx["wallet_id"]
-        ] += int(trx['amount'])
+            trx["wallet_id"],
+        ] += int(trx["amount"])
 
     # after we got the aggregated result we revert back the result into the
     # original state
     dict_count = dict(counter)
-    result = [{
-        "source_id": k[0],
-        "source_type": k[1],
-        "destination_id": k[2],
-        "destination_type": k[3],
-        "transaction_type": k[4],
-        "wallet_id": k[5],
-        "amount": v
-    } for k, v in dict_count.items()]
+    result = [
+        {
+            "source_id": k[0],
+            "source_type": k[1],
+            "destination_id": k[2],
+            "destination_type": k[3],
+            "transaction_type": k[4],
+            "wallet_id": k[5],
+            "amount": v,
+        }
+        for k, v in dict_count.items()
+    ]
     return result
 
 
-def bulk_transaction(
-        transactions
-):
+def bulk_transaction(transactions):
     # we group transaction based on its destination so let say if there 10
     # transaction have source a and destination b we aggregate it into 1
     # transaction a to b with total amount of 10 transaction

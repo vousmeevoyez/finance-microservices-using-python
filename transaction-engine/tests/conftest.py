@@ -51,8 +51,8 @@ def setup_borrower_user():
         "user_virtual_account": {
             "account_no": "some-account-no",
             "trx_id": "some-trx-id",
-            "wallet_id": "some-wallet-id"
-        }
+            "wallet_id": "some-wallet-id",
+        },
     }
     user = User(**data)
     user.commit()
@@ -133,21 +133,9 @@ def setup_bca_bank():
 def setup_mocepat_product():
     data = {
         "grades": [
-            {
-                "grade": "A",
-                "min_score": 300,
-                "max_score": 1000,
-            },
-            {
-                "grade": "B",
-                "min_score": 265,
-                "max_score": 299,
-            },
-            {
-                "grade": "C",
-                "min_score": 238,
-                "max_score": 264,
-            }
+            {"grade": "A", "min_score": 300, "max_score": 1000},
+            {"grade": "B", "min_score": 265, "max_score": 299},
+            {"grade": "C", "min_score": 238, "max_score": 264},
         ],
         "product_type": "one-time-payment",
         "product_name": "Mocepat",
@@ -166,34 +154,20 @@ def setup_mocepat_product():
             "max_tenor": 30,
             "late_fee": 1,
             "late_fee_type": "PERCENT",
-            "loan_amounts": [
-                {
-                    "amount": 500000
-                },
-                {
-                    "amount": 1000000
-                }
-            ],
+            "loan_amounts": [{"amount": 500000}, {"amount": 1000000}],
             "penalty_fee": 0,
             "penalty_fee_type": "PERCENT",
             "grade_period": 2,
             "max_late_fee": 30,
-            "fees": [{
-                "start_tenor": 7,
-                "end_tenor": 14,
-                "fee": 0.5,
-                "fee_type": "PERCENT"
-            }, {
-                "start_tenor": 15,
-                "end_tenor": 30,
-                "fee": 0.4,
-                "fee_type": "PERCENT"
-            }]
+            "fees": [
+                {"start_tenor": 7, "end_tenor": 14, "fee": 0.5, "fee_type": "PERCENT"},
+                {"start_tenor": 15, "end_tenor": 30, "fee": 0.4, "fee_type": "PERCENT"},
+            ],
         },
         "freeze_period": 7,
         "min_score": 181,
         "max_salary": 30,
-        "max_salary_type": "PERCENT"
+        "max_salary_type": "PERCENT",
     }
     product = Product(**data)
     product.commit()
@@ -250,10 +224,7 @@ def setup_investor(setup_user, setup_analyst, setup_bni_bank, setup_bca_bank):
         "email_code": "some cool email code",
         "passport": "12312312312312321213",
         "is_email_verified": "VERIFIED",
-        "approver_info": {
-            "message": "some message",
-            "approver_id": setup_analyst.id
-        },
+        "approver_info": {"message": "some message", "approver_id": setup_analyst.id},
         "fees": [
             {
                 "late_fee": 30,
@@ -289,7 +260,7 @@ def setup_investor(setup_user, setup_analyst, setup_bni_bank, setup_bca_bank):
                 "account_no": "112233445599",
                 "account_name": "BCA Kelvin Desman",
                 "account_type": "BANK_ACCOUNT",
-            }
+            },
         ],
     }
     investor = Investor(**data)
@@ -364,27 +335,29 @@ def setup_investment(setup_investor, setup_bni_bank):
 
 @pytest.fixture(scope="module")
 def setup_tnc_file():
-    data = {
-        "file_type": "terms",
-        "content": "$PEMBERI_PINJAMAN",
-        "language": "id"
-    }
+    data = {"file_type": "terms", "content": "$PEMBERI_PINJAMAN", "language": "id"}
     article = Article(**data)
     article.commit()
     return article
 
 
 @pytest.fixture(scope="module")
-def make_loan_request(setup_borrower,
-                      setup_borrower_user,
-                      setup_bni_bank,
-                      setup_mocepat_product,
-                      setup_investment,
-                      setup_tnc_file):
-    def _make_loan_request(overdue=0, tenor=15,
-                           requested_loan_request=500000,
-                           disburse_amount=477500, service_fee=22500,
-                           status="APPROVED"):
+def make_loan_request(
+    setup_borrower,
+    setup_borrower_user,
+    setup_bni_bank,
+    setup_mocepat_product,
+    setup_investment,
+    setup_tnc_file,
+):
+    def _make_loan_request(
+        overdue=0,
+        tenor=15,
+        requested_loan_request=500000,
+        disburse_amount=477500,
+        service_fee=22500,
+        status="APPROVED",
+    ):
 
         random_no = random.randint(111111, 999999)
         random_va = "9889909611" + str(random_no)
@@ -417,13 +390,8 @@ def make_loan_request(setup_borrower,
             "late_fee_logs": [],
             "credit_score": 194,
             "grade": "D",
-            "tnc": {
-                "file_id": setup_tnc_file.id,
-                "is_agreed": True,
-            },
-            "modanaku": {
-                "wallet_id": "modanaku-wallet-id"
-            },
+            "tnc": {"file_id": setup_tnc_file.id, "is_agreed": True},
+            "modanaku": {"wallet_id": "modanaku-wallet-id"},
             "bank_accounts": [
                 {
                     "bank_id": setup_bni_bank.id,
@@ -431,7 +399,7 @@ def make_loan_request(setup_borrower,
                     "account_no": random_va,
                     "account_name": "Repayment Kelvin Desman",
                     "account_type": "VIRTUAL_ACCOUNT",
-                    "label": "REPAYMENT"
+                    "label": "REPAYMENT",
                 },
                 {
                     "bank_id": setup_bni_bank.id,
@@ -439,13 +407,14 @@ def make_loan_request(setup_borrower,
                     "account_no": "9889909600023123",
                     "account_name": "Modanaku Kelvin Desman",
                     "account_type": "VIRTUAL_ACCOUNT",
-                    "label": "MODANAKU"
-                }
+                    "label": "MODANAKU",
+                },
             ],
         }
         loan_request = LoanRequest(**data)
         loan_request.commit()
         return loan_request
+
     return _make_loan_request
 
 
@@ -497,9 +466,15 @@ def setup_profit_wallet(setup_bni_bank):
 
 @pytest.fixture(scope="module")
 def make_transaction():
-    def _make_transaction(wallet_id, source_id, source_type,
-                          destination_id, destination_type, amount,
-                          transaction_type):
+    def _make_transaction(
+        wallet_id,
+        source_id,
+        source_type,
+        destination_id,
+        destination_type,
+        amount,
+        transaction_type,
+    ):
         # debit trransaction to deduct investor wallet
         transaction = Transaction(
             wallet_id=wallet_id,
@@ -517,6 +492,7 @@ def make_transaction():
         transaction.payment = payment
         transaction.commit()
         return transaction
+
     return _make_transaction
 
 
@@ -549,22 +525,15 @@ def setup_borrower(setup_borrower_user):
             "length_of_stay_validation": False,
             "residency_status": "Pribadi",
             "residency_status_validation": False,
-            "zip_code_validation": True
+            "zip_code_validation": True,
         },
-        "ktp": {
-            "no": "1471120607930002",
-            "validation": True
-        },
-        "npwp": {
-            "no": "88775566",
-            "validation": True
-        },
+        "ktp": {"no": "1471120607930002", "validation": True},
+        "npwp": {"no": "88775566", "validation": True},
         "work_info": [
             {
                 "basic_salary": 10000000,
                 "employee_no": "1112223334445",
-                "payslip": {
-                },
+                "payslip": {},
                 "address": {
                     "street": "Benhil No 101",
                     "kelurahan": "Tebet Timur",
@@ -577,7 +546,7 @@ def setup_borrower(setup_borrower_user):
                     "kelurahan_validation": True,
                     "province_validation": True,
                     "street_validation": True,
-                    "zip_code_validation": True
+                    "zip_code_validation": True,
                 },
                 "company_id": "88JeQUSRUaEPwR9i9fJEBF",
                 "company_name": "pt baru banget",
@@ -595,7 +564,7 @@ def setup_borrower(setup_borrower_user):
                 "employee_no_validation": True,
                 "employment_status_validation": False,
                 "position_validation": True,
-                "work_date_start_validation": False
+                "work_date_start_validation": False,
             }
         ],
         "user_id": setup_borrower_user.id,
@@ -626,7 +595,7 @@ def setup_borrower(setup_borrower_user):
                 "relationship_validation": False,
                 "relationship": "Sepupu",
                 "index": "emergencyContact_3",
-            }
+            },
         ],
         "borrower_code": "91017100027",
         "age": 26,
@@ -654,7 +623,7 @@ def setup_borrower(setup_borrower_user):
         "partner_name_validation": False,
         "religion": "Islam",
         "religion_validation": True,
-        "nationality": "Indonesia"
+        "nationality": "Indonesia",
     }
     borrower = Borrower(**data)
     borrower.commit()
@@ -668,13 +637,7 @@ def setup_investment_with_loan(setup_investment, make_loan_request):
         "loan_request_id": loan_request.id,
         "disburse_amount": 477500,
         "total_fee": 22500,
-        "fees": [
-            {
-                "name": "upfrontFee",
-                "investor_fee": 225,
-                "profit_fee": 2275
-            }
-        ]
+        "fees": [{"name": "upfrontFee", "investor_fee": 225, "profit_fee": 2275}],
     }
     setup_investment.loan_requests.append(investment_loan_request)
     setup_investment.commit()
@@ -688,7 +651,7 @@ def setup_investment_with_transaction(
     setup_investment_with_loan,
     make_transaction,
     setup_investor_wallet,
-    setup_investor
+    setup_investor,
 ):
     # get investment object to be add
     investment, loan_request = setup_investment_with_loan
@@ -700,7 +663,7 @@ def setup_investment_with_transaction(
         destination_id=investment.id,
         destination_type="INVESTMENT",
         amount=-500000,
-        transaction_type="INVEST"
+        transaction_type="INVEST",
     )
 
     # create receive upfront fee transaction
@@ -711,7 +674,7 @@ def setup_investment_with_transaction(
         destination_id=setup_profit_wallet.id,
         destination_type="PROFIT",
         amount=1000000,
-        transaction_type="RECEIVE_UPFRONT_FEE"
+        transaction_type="RECEIVE_UPFRONT_FEE",
     )
 
     # create send upfront fee transaction
@@ -722,7 +685,7 @@ def setup_investment_with_transaction(
         destination_id=setup_profit_wallet.id,
         destination_type="PROFIT",
         amount=-1000000,
-        transaction_type="UPFRONT_FEE"
+        transaction_type="UPFRONT_FEE",
     )
 
     # create send modanaku transaction
@@ -733,7 +696,7 @@ def setup_investment_with_transaction(
         destination_id=loan_request.id,
         destination_type="MODANAKU",
         amount=-1000000,
-        transaction_type="DISBURSE"
+        transaction_type="DISBURSE",
     )
 
     # create send invest fee transaction
@@ -744,7 +707,7 @@ def setup_investment_with_transaction(
         destination_id=setup_escrow_wallet.id,
         destination_type="ESCROW",
         amount=-1000000,
-        transaction_type="INVEST_FEE"
+        transaction_type="INVEST_FEE",
     )
 
     # create receive invest fee transaction
@@ -755,33 +718,33 @@ def setup_investment_with_transaction(
         destination_id=setup_escrow_wallet.id,
         destination_type="ESCROW",
         amount=1000000,
-        transaction_type="RECEIVE_INVEST_FEE"
+        transaction_type="RECEIVE_INVEST_FEE",
     )
 
     transactions = []
     invest_trx_payload = {
         "transaction_id": invest_trx.id,
-        "status": "SEND_TO_INVESTMENT_REQUESTED"
+        "status": "SEND_TO_INVESTMENT_REQUESTED",
     }
     send_upfront_trx_payload = {
         "transaction_id": send_upfront_trx.id,
-        "status": "SEND_TO_PROFIT_REQUESTED"
+        "status": "SEND_TO_PROFIT_REQUESTED",
     }
     receive_upfront_trx_payload = {
         "transaction_id": receive_upfront_trx.id,
-        "status": "RECEIVE_UPFRONT_FEE_REQUESTED"
+        "status": "RECEIVE_UPFRONT_FEE_REQUESTED",
     }
     send_modanaku_trx_payload = {
         "transaction_id": send_modanaku_trx.id,
-        "status": "SEND_TO_MODANAKU_REQUESTED"
+        "status": "SEND_TO_MODANAKU_REQUESTED",
     }
     send_invest_fee_trx_payload = {
         "transaction_id": send_invest_fee_trx.id,
-        "status": "SEND_FEE_TO_ESCROW_REQUESTED"
+        "status": "SEND_FEE_TO_ESCROW_REQUESTED",
     }
     receive_invest_fee_trx_payload = {
         "transaction_id": receive_invest_fee_trx.id,
-        "status": "RECEIVE_FEE_FROM_PROFIT_REQUESTED"
+        "status": "RECEIVE_FEE_FROM_PROFIT_REQUESTED",
     }
     transactions.append(invest_trx)
     transactions.append(send_upfront_trx)

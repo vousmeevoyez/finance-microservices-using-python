@@ -55,9 +55,9 @@ class TransactionTask(celery.Task):
             with session.start_transaction():
                 try:
                     # fetch transaction first to get transaction info
-                    transaction = Transaction.find_one({
-                        "_id": ObjectId(transaction_id)
-                    })
+                    transaction = Transaction.find_one(
+                        {"_id": ObjectId(transaction_id)}
+                    )
                     current_trx_amount = int(transaction.amount)
 
                     # fetch wallet to get latest wallet info
@@ -76,10 +76,12 @@ class TransactionTask(celery.Task):
                     after_balance = current_balance + current_trx_amount
                     Transaction.collection.update_one(
                         {"_id": ObjectId(transaction_id)},
-                        {"$set": {
-                            "status": "APPLIED",
-                            "balance": Decimal128(after_balance)
-                        }}
+                        {
+                            "$set": {
+                                "status": "APPLIED",
+                                "balance": Decimal128(after_balance),
+                            }
+                        },
                     )
 
                     session.commit_transaction()

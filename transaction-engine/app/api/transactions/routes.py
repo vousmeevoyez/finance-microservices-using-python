@@ -11,17 +11,13 @@ from app.api.transactions import api
 from app.api.lib.core.routes import Routes
 from app.api.request_schema import (
     TransactionRequestSchema,
-    BulkTransactionRequestSchema
+    BulkTransactionRequestSchema,
 )
 from app.api.serializer import (
     TrxSchema as TransactionSchema,
-    BulkTrxSchema as BulkTransactionSchema
+    BulkTrxSchema as BulkTransactionSchema,
 )
-from app.api.transactions.services import (
-    single_transaction,
-    bulk_transaction,
-    get_all
-)
+from app.api.transactions.services import single_transaction, bulk_transaction, get_all
 
 
 @api.route("/")
@@ -54,7 +50,7 @@ class TransactionBulkRoutes(Routes):
     __serializer__ = BulkTransactionSchema()
 
     def post(self):
-        #request_data = self.serialize(self.payload(), load=True)
+        # request_data = self.serialize(self.payload(), load=True)
         request_data = self.serialize(self.payload())
         current_app.logger.info("Request Data......")
         current_app.logger.info(request_data)

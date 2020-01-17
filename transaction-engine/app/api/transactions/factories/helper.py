@@ -18,7 +18,7 @@ def process_transaction(
     destination_type,
     amount,
     transaction_type,
-    reference_no=None
+    reference_no=None,
 ):
 
     # first we need to convert every incoming string with object id

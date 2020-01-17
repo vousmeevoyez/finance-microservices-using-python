@@ -3,14 +3,9 @@ import random
 from bson import ObjectId
 
 from flask import current_app
-from celery.exceptions import (
-    MaxRetriesExceededError
-)
+from celery.exceptions import MaxRetriesExceededError
 
-from app.api import (
-    celery,
-    sentry
-)
+from app.api import celery, sentry
 from app.api.models.transaction import Transaction
 from app.api.models.base import StatusEmbed
 from app.config.worker import WORKER, HTTP
@@ -53,7 +48,7 @@ class UtilityTask(celery.Task):
         payload = {
             "transaction_id": transaction_id,
             "transaction_type": transaction.transaction_type,
-            "status": transaction.payment.status
+            "status": transaction.payment.status,
         }
 
         try:

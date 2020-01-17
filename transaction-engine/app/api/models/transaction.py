@@ -17,11 +17,7 @@ from umongo.fields import (
 )
 
 from app.api import instance
-from app.api.const import (
-    TYPE_TO_MODELS,
-    PROVIDER_ROUTES,
-    TRANSFER_TYPES
-)
+from app.api.const import TYPE_TO_MODELS, PROVIDER_ROUTES, TRANSFER_TYPES
 from app.api.models.bank import Bank
 from app.api.lib.helper import str_to_class
 
@@ -83,9 +79,7 @@ class PaymentEmbed(EmbeddedDocument):
             return bank account information or lending wallet info
         """
         if type_ == "INVESTOR_BANK_ACC":
-            bank_account = collection().get_bank_account_using_id(
-                collection_id
-            )
+            bank_account = collection().get_bank_account_using_id(collection_id)
         else:
             bank_account = collection().get_bank_account_using_id_label(
                 collection_id, type_
@@ -103,8 +97,8 @@ class PaymentEmbed(EmbeddedDocument):
             payment_type = "DEBIT"
         return payment_type
 
-    #@staticmethod
-    #def _get_bank_code(destination):
+    # @staticmethod
+    # def _get_bank_code(destination):
     #    bank = Bank.find_one({"id": destination["bid"]})
     #    return bank.interbank_code
 

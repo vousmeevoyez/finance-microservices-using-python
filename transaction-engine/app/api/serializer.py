@@ -21,4 +21,5 @@ class TrxSchema(ma.Schema):
 
 class BulkTrxSchema(ma.Schema):
     """ this is class for bulk create transaction """
+
     transactions = fields.Nested(TrxSchema, many=True)

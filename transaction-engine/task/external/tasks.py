@@ -45,6 +45,7 @@ class ExternalTask(celery.Task):
     """
         Any External API Call via gRPC
     """
+
     @celery.task(
         bind=True,
         max_retries=int(WORKER["MAX_RETRIES"]),
@@ -55,9 +56,7 @@ class ExternalTask(celery.Task):
     def transfer(self, transaction_id):
         """ execute any external API Transfer """
         # look up transaction infromation
-        transaction = Transaction.find_one({
-            "_id": ObjectId(transaction_id)
-        })
+        transaction = Transaction.find_one({"_id": ObjectId(transaction_id)})
 
         # we should build payment payload for actual transfer
         source_bank_acc = transaction.payment.source
@@ -68,14 +67,9 @@ class ExternalTask(celery.Task):
         amount = abs(int(transaction.amount))
 
         # REQUIRED to make sure transfer idempotence
-        inquiry_ref_number = generate_ref_number(
-            provider,
-            destination_bank_acc
-        )
+        inquiry_ref_number = generate_ref_number(provider, destination_bank_acc)
         transfer_ref_number = generate_ref_number(
-            provider,
-            destination_bank_acc,
-            amount
+            provider, destination_bank_acc, amount
         )
 
         # generate gRPC message
@@ -125,23 +119,30 @@ class ExternalTask(celery.Task):
                     # try fetch bank reference if available
                     Transaction.collection.update_one(
                         {"_id": ObjectId(transaction_id)},
-                        {"$set": {
-                            "payment.reference_no": reference_no,
-                            "payment.status": status
-                        }},
-                        session=session
+                        {
+                            "$set": {
+                                "payment.reference_no": reference_no,
+                                "payment.status": status,
+                            }
+                        },
+                        session=session,
                     )
                     # commit everything here
                     session.commit_transaction()
                 except (ConnectionFailure, OperationFailure) as exc:
                     current_app.logger.info(str(exc))
-                    current_app.logger.info("retry {} commit \
-                                            ".format(transaction_id))
+                    current_app.logger.info(
+                        "retry {} commit \
+                                            ".format(
+                            transaction_id
+                        )
+                    )
                     self.retry(countdown=backoff(self.request.retries))
                 else:
                     if status == "FAILED":
                         # if the transaction was failed we refund trigger
                         # refund here
                         from app.api.transactions.services import refund
+
                         result = refund(transaction_id=transaction_id)
                         current_app.logger.info("REFUND {}".format(result))

@@ -42,8 +42,9 @@ def test_external_transfer_rpc_error(
 
 @patch("task.external.factories.helper.RdlTransferStub")
 @patch("task.transaction.tasks.TransactionTask.retry")
-def test_external_transfer_max_rpc_error(mock_rdl, mock_celery,
-                                         setup_investment_with_transaction):
+def test_external_transfer_max_rpc_error(
+    mock_rdl, mock_celery, setup_investment_with_transaction
+):
     investment, loan_request, transactions = setup_investment_with_transaction
     transaction = transactions[0]
 
@@ -52,8 +53,7 @@ def test_external_transfer_max_rpc_error(mock_rdl, mock_celery,
     mock_celery.side_effect = MaxRetriesExceededError()
 
     with pytest.raises(MaxRetriesExceededError):
-        transaction_id, result, reference_no = \
-            ExternalTask().transfer(transaction.id)
+        transaction_id, result, reference_no = ExternalTask().transfer(transaction.id)
         # make sure transaction applied
         assert transaction_id == str(transaction.id)
         assert result == "FAILED"
@@ -88,13 +88,13 @@ def test_apply_external_failed(setup_investment_with_transaction):
     wallet = Wallet.find_one({"_id": transaction.wallet_id})
     assert wallet.balance == 500000
 
-    refund = Transaction.find_one({
-        "transaction_type": "DEBIT_REFUND",
-        "wallet_id": wallet.id
-    })
+    refund = Transaction.find_one(
+        {"transaction_type": "DEBIT_REFUND", "wallet_id": wallet.id}
+    )
     assert refund
 
-'''
+
+"""
 @patch("pymongo.mongo_client.MongoClient")
 @patch("task.transaction.tasks.TransactionTask.retry")
 def test_apply_external_commit_error(mock_pymongo, mock_celery, setup_debit_transaction):
@@ -106,4 +106,4 @@ def test_apply_external_commit_error(mock_pymongo, mock_celery, setup_debit_tran
         ExternalTask().apply_external(
             str(setup_debit_transaction.id), "COMPLETED", "12345678910"
         )
-'''
+"""

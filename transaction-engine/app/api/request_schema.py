@@ -25,5 +25,6 @@ class TransactionRequestSchema:
 
 class BulkTransactionRequestSchema:
     """Define all mandatory argument for bulk transaction"""
+
     parser = reqparse.RequestParser()
     parser.add_argument("transactions", type=dict, action="append")

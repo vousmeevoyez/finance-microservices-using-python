@@ -33,8 +33,7 @@ class AbstractTransaction(ABC):
     def create(self):
         # should send queue here
         TransactionTask().apply.apply_async(
-            args=[str(self.transaction.id)],
-            queue="transaction"
+            args=[str(self.transaction.id)], queue="transaction"
         )
 
         return self.transaction.id
@@ -46,16 +45,14 @@ class DebitTransaction(AbstractTransaction):
 
 class CreditTransaction(AbstractTransaction):
     """ Base class that represent transaction that add balance """
+
     def create(self):
         chain(
-            TransactionTask().apply.s(
-                str(self.transaction.id)
-            ).set(queue="transaction"),
-
+            TransactionTask()
+            .apply.s(str(self.transaction.id))
+            .set(queue="transaction"),
             # send callback
-            UtilityTask().notify.si(
-                str(self.transaction.id)
-            ).set(queue="utility")
+            UtilityTask().notify.si(str(self.transaction.id)).set(queue="utility"),
         ).apply_async()
         return self.transaction.id
 
@@ -72,20 +69,13 @@ class BankTransferTransaction(DebitTransaction):
 
     def create(self):
         chain(
-            TransactionTask().apply.s(
-                str(self.transaction.id)
-            ).set(queue="transaction"),
-
-            ExternalTask().transfer.si(
-                str(self.transaction.id)
-            ).set(queue="external"),
-
-            ExternalTask().apply_external.s(
-            ).set(queue="external"),
+            TransactionTask()
+            .apply.s(str(self.transaction.id))
+            .set(queue="transaction"),
+            ExternalTask().transfer.si(str(self.transaction.id)).set(queue="external"),
+            ExternalTask().apply_external.s().set(queue="external"),
             # send callback
-            UtilityTask().notify.si(
-                str(self.transaction.id)
-            ).set(queue="utility")
+            UtilityTask().notify.si(str(self.transaction.id)).set(queue="utility"),
         ).apply_async()
         return self.transaction.id
 
@@ -117,6 +107,7 @@ class InvestRepaymentTransaction(BankTransferTransaction):
 
 class WithdrawTransaction(BankTransferTransaction):
     """ transaction for withdraw money from rdl to any bank account """
+
 
 """ CREDIT TRANSACTION """
 

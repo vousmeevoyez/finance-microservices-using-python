@@ -13,15 +13,11 @@ from umongo.fields import (
     DateField,
     IntField,
     BoolField,
-    ListField
+    ListField,
 )
 
 from app.api import instance
-from app.api.models.base import (
-    BaseDocument,
-    BaseEmbeddedDocument,
-    BankAccEmbed
-)
+from app.api.models.base import BaseDocument, BaseEmbeddedDocument, BankAccEmbed
 from app.api.lib.core.exceptions import BaseError
 
 
@@ -205,10 +201,7 @@ class Borrower(BaseDocument):
     no_of_child_validation = BoolField(attribute="nc_v")
     employee_virtual_account = StrField(attribute="vae")
     loan_to = IntField(attribute="lt")
-    emergency_contacts = ListField(
-        EmbeddedField(EmergencyContactEmbed),
-        attribute="ec"
-    )
+    emergency_contacts = ListField(EmbeddedField(EmergencyContactEmbed), attribute="ec")
     partner_name = StrField(attribute="pn")
     partner_name_validation = BoolField(attribute="pn_v")
     wallet_bank_account_id = StrField(attribute="wba")

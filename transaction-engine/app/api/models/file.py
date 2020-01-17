@@ -9,7 +9,7 @@ from umongo.fields import (
     ObjectIdField,
     IntField,
     BooleanField,
-    StrField
+    StrField,
 )
 
 from app.api import instance
@@ -19,6 +19,7 @@ from app.api.models.base import BaseDocument
 @instance.register
 class File(BaseDocument):
     """ shared bank account embedded models """
+
     borrower_id = ObjectIdField()
     user_id = ObjectIdField()
     file_type = StrField(attribute="ft")
@@ -35,6 +36,7 @@ class File(BaseDocument):
 @instance.register
 class Article(BaseDocument):
     """ shared bank account embedded models """
+
     file_type = StrField(attribute="ft")
     id_ = BooleanField(attribute="id")
     type_ = StrField(attribute="t")

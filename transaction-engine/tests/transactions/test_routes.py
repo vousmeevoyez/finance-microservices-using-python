@@ -4,10 +4,7 @@
 from bson import ObjectId
 
 from app.api.models.transaction import Transaction
-from tests.api_list import (
-    create_transaction,
-    create_bulk_transaction
-)
+from tests.api_list import create_transaction, create_bulk_transaction
 
 
 def test_api_top_up(setup_client, setup_investor, setup_investor_wallet):
@@ -19,7 +16,7 @@ def test_api_top_up(setup_client, setup_investor, setup_investor_wallet):
         "destination_type": "INVESTOR",
         "amount": "1000000.0000",
         "transaction_type": "TOP_UP_RDL",
-        "reference_no": "00712312312"
+        "reference_no": "00712312312",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -40,8 +37,9 @@ def test_api_top_up(setup_client, setup_investor, setup_investor_wallet):
     assert transaction.payment.destination == "01231231312"
 
 
-def test_api_invest(setup_client, setup_investor, setup_investor_wallet,
-                    setup_investment):
+def test_api_invest(
+    setup_client, setup_investor, setup_investor_wallet, setup_investment
+):
     payload = {
         "wallet_id": str(setup_investor_wallet.id),
         "source_id": str(setup_investor.id),
@@ -49,7 +47,7 @@ def test_api_invest(setup_client, setup_investor, setup_investor_wallet,
         "destination_id": str(setup_investment.id),
         "destination_type": "INVESTMENT",
         "amount": -1000000,
-        "transaction_type": "INVEST"
+        "transaction_type": "INVEST",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -70,9 +68,13 @@ def test_api_invest(setup_client, setup_investor, setup_investor_wallet,
     assert transaction.payment.destination == "9889909612123123"
 
 
-def test_api_callback_investment(setup_client, setup_investor,
-                                 setup_investor_wallet, setup_investment,
-                                 setup_escrow_wallet):
+def test_api_callback_investment(
+    setup_client,
+    setup_investor,
+    setup_investor_wallet,
+    setup_investment,
+    setup_escrow_wallet,
+):
     payload = {
         "wallet_id": str(setup_escrow_wallet.id),
         "source_id": str(setup_investor.id),
@@ -81,7 +83,7 @@ def test_api_callback_investment(setup_client, setup_investor,
         "destination_type": "INVESTMENT",
         "amount": 1000000,
         "transaction_type": "RECEIVE_INVEST",
-        "reference_no": "12312312312"
+        "reference_no": "12312312312",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -102,8 +104,7 @@ def test_api_callback_investment(setup_client, setup_investor,
     assert transaction.payment.destination == "9889909612123123"
 
 
-def test_api_send_upfront_fee(setup_client, setup_escrow_wallet,
-                              setup_profit_wallet):
+def test_api_send_upfront_fee(setup_client, setup_escrow_wallet, setup_profit_wallet):
     payload = {
         "wallet_id": str(setup_escrow_wallet.id),
         "source_id": str(setup_escrow_wallet.id),
@@ -111,7 +112,7 @@ def test_api_send_upfront_fee(setup_client, setup_escrow_wallet,
         "destination_id": str(setup_profit_wallet.id),
         "destination_type": "PROFIT",
         "amount": -1000000,
-        "transaction_type": "UPFRONT_FEE"
+        "transaction_type": "UPFRONT_FEE",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -132,8 +133,9 @@ def test_api_send_upfront_fee(setup_client, setup_escrow_wallet,
     assert transaction.payment.destination == "000022334555"
 
 
-def test_api_receive_upfront_fee(setup_client, setup_escrow_wallet,
-                                 setup_profit_wallet):
+def test_api_receive_upfront_fee(
+    setup_client, setup_escrow_wallet, setup_profit_wallet
+):
     payload = {
         "wallet_id": str(setup_profit_wallet.id),
         "source_id": str(setup_escrow_wallet.id),
@@ -141,7 +143,7 @@ def test_api_receive_upfront_fee(setup_client, setup_escrow_wallet,
         "destination_id": str(setup_profit_wallet.id),
         "destination_type": "PROFIT",
         "amount": 1000000,
-        "transaction_type": "RECEIVE_UPFRONT_FEE"
+        "transaction_type": "RECEIVE_UPFRONT_FEE",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -162,8 +164,9 @@ def test_api_receive_upfront_fee(setup_client, setup_escrow_wallet,
     assert transaction.payment.destination == "000022334555"
 
 
-def test_api_disburse_modanaku(setup_client, setup_escrow_wallet,
-                               setup_investment_with_loan):
+def test_api_disburse_modanaku(
+    setup_client, setup_escrow_wallet, setup_investment_with_loan
+):
     investment, loan_request = setup_investment_with_loan
     payload = {
         "wallet_id": str(setup_escrow_wallet.id),
@@ -172,7 +175,7 @@ def test_api_disburse_modanaku(setup_client, setup_escrow_wallet,
         "destination_id": str(loan_request.id),
         "destination_type": "MODANAKU",
         "amount": -1000000,
-        "transaction_type": "DISBURSE"
+        "transaction_type": "DISBURSE",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -193,8 +196,9 @@ def test_api_disburse_modanaku(setup_client, setup_escrow_wallet,
     assert transaction.payment.destination == "9889909600023123"
 
 
-def test_api_callback_repayment(setup_client, setup_escrow_wallet,
-                                setup_investment_with_loan):
+def test_api_callback_repayment(
+    setup_client, setup_escrow_wallet, setup_investment_with_loan
+):
     investment, loan_request = setup_investment_with_loan
     payload = {
         "wallet_id": str(setup_escrow_wallet.id),
@@ -204,7 +208,7 @@ def test_api_callback_repayment(setup_client, setup_escrow_wallet,
         "destination_type": "REPAYMENT",
         "amount": 1000000,
         "transaction_type": "RECEIVE_REPAYMENT",
-        "reference_no": "00000000000000"
+        "reference_no": "00000000000000",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -225,8 +229,7 @@ def test_api_callback_repayment(setup_client, setup_escrow_wallet,
     assert transaction.payment.destination
 
 
-def test_api_send_invest_fee(setup_client, setup_escrow_wallet,
-                             setup_profit_wallet):
+def test_api_send_invest_fee(setup_client, setup_escrow_wallet, setup_profit_wallet):
     payload = {
         "wallet_id": str(setup_profit_wallet.id),
         "source_id": str(setup_profit_wallet.id),
@@ -234,7 +237,7 @@ def test_api_send_invest_fee(setup_client, setup_escrow_wallet,
         "destination_id": str(setup_escrow_wallet.id),
         "destination_type": "ESCROW",
         "amount": -1000000,
-        "transaction_type": "INVEST_FEE"
+        "transaction_type": "INVEST_FEE",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -254,10 +257,7 @@ def test_api_send_invest_fee(setup_client, setup_escrow_wallet,
     assert transaction.payment.destination == "111222334"
 
 
-def test_api_receive_invest_fee(
-    setup_client, setup_escrow_wallet,
-    setup_profit_wallet
-):
+def test_api_receive_invest_fee(setup_client, setup_escrow_wallet, setup_profit_wallet):
     payload = {
         "wallet_id": str(setup_escrow_wallet.id),
         "source_id": str(setup_profit_wallet.id),
@@ -266,7 +266,7 @@ def test_api_receive_invest_fee(
         "destination_type": "ESCROW",
         "amount": 1000000,
         "transaction_type": "RECEIVE_INVEST_FEE",
-        "reference_no": "123123333"
+        "reference_no": "123123333",
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -286,10 +286,7 @@ def test_api_receive_invest_fee(
     assert transaction.payment.destination == "111222334"
 
 
-def test_api_invest_repayment(
-    setup_client, setup_escrow_wallet,
-    setup_investor
-):
+def test_api_invest_repayment(setup_client, setup_escrow_wallet, setup_investor):
     payload = {
         "wallet_id": str(setup_escrow_wallet.id),
         "source_id": str(setup_escrow_wallet.id),
@@ -317,10 +314,7 @@ def test_api_invest_repayment(
     assert transaction.payment.destination == "01231231312"
 
 
-def test_api_investor_bni_withdraw(
-    setup_client, setup_investor_wallet,
-    setup_investor
-):
+def test_api_investor_bni_withdraw(setup_client, setup_investor_wallet, setup_investor):
     payload = {
         "wallet_id": str(setup_investor_wallet.id),
         "source_id": str(setup_investor.id),
@@ -348,10 +342,7 @@ def test_api_investor_bni_withdraw(
     assert transaction.payment.destination == "112233445566"
 
 
-def test_api_investor_bca_withdraw(
-        setup_client, setup_investor_wallet,
-        setup_investor
-):
+def test_api_investor_bca_withdraw(setup_client, setup_investor_wallet, setup_investor):
     payload = {
         "wallet_id": str(setup_investor_wallet.id),
         "source_id": str(setup_investor.id),
@@ -379,8 +370,7 @@ def test_api_investor_bca_withdraw(
     assert transaction.payment.destination == "112233445599"
 
 
-def test_api_bulk_upfront_fee(setup_client, setup_escrow_wallet,
-                              setup_profit_wallet):
+def test_api_bulk_upfront_fee(setup_client, setup_escrow_wallet, setup_profit_wallet):
     payload = {
         "transactions": [
             {
@@ -390,7 +380,7 @@ def test_api_bulk_upfront_fee(setup_client, setup_escrow_wallet,
                 "destination_id": str(setup_profit_wallet.id),
                 "destination_type": "PROFIT",
                 "amount": -1000000,
-                "transaction_type": "UPFRONT_FEE"
+                "transaction_type": "UPFRONT_FEE",
             },
             {
                 "wallet_id": str(setup_escrow_wallet.id),
@@ -399,7 +389,7 @@ def test_api_bulk_upfront_fee(setup_client, setup_escrow_wallet,
                 "destination_id": str(setup_profit_wallet.id),
                 "destination_type": "PROFIT",
                 "amount": -1000000,
-                "transaction_type": "UPFRONT_FEE"
+                "transaction_type": "UPFRONT_FEE",
             },
             {
                 "wallet_id": str(setup_escrow_wallet.id),
@@ -408,7 +398,7 @@ def test_api_bulk_upfront_fee(setup_client, setup_escrow_wallet,
                 "destination_id": str(setup_profit_wallet.id),
                 "destination_type": "PROFIT",
                 "amount": -1000000,
-                "transaction_type": "UPFRONT_FEE"
+                "transaction_type": "UPFRONT_FEE",
             },
         ]
     }
@@ -430,8 +420,8 @@ def test_api_bulk_upfront_fee(setup_client, setup_escrow_wallet,
     assert transaction.payment.source == "111222334"
     assert transaction.payment.destination == "000022334555"
 
-def test_api_bulk_invest_fee(setup_client, setup_escrow_wallet,
-                             setup_profit_wallet):
+
+def test_api_bulk_invest_fee(setup_client, setup_escrow_wallet, setup_profit_wallet):
     payload = {
         "wallet_id": str(setup_profit_wallet.id),
         "source_id": str(setup_profit_wallet.id),
@@ -439,7 +429,7 @@ def test_api_bulk_invest_fee(setup_client, setup_escrow_wallet,
         "destination_id": str(setup_escrow_wallet.id),
         "destination_type": "ESCROW",
         "amount": -1000000,
-        "transaction_type": "INVEST_FEE"
+        "transaction_type": "INVEST_FEE",
     }
 
     payload = {
@@ -451,7 +441,7 @@ def test_api_bulk_invest_fee(setup_client, setup_escrow_wallet,
                 "destination_id": str(setup_escrow_wallet.id),
                 "destination_type": "ESCROW",
                 "amount": -1000000,
-                "transaction_type": "INVEST_FEE"
+                "transaction_type": "INVEST_FEE",
             },
             {
                 "wallet_id": str(setup_profit_wallet.id),
@@ -460,7 +450,7 @@ def test_api_bulk_invest_fee(setup_client, setup_escrow_wallet,
                 "destination_id": str(setup_escrow_wallet.id),
                 "destination_type": "ESCROW",
                 "amount": -1000000,
-                "transaction_type": "INVEST_FEE"
+                "transaction_type": "INVEST_FEE",
             },
             {
                 "wallet_id": str(setup_profit_wallet.id),
@@ -469,7 +459,7 @@ def test_api_bulk_invest_fee(setup_client, setup_escrow_wallet,
                 "destination_id": str(setup_escrow_wallet.id),
                 "destination_type": "ESCROW",
                 "amount": -1000000,
-                "transaction_type": "INVEST_FEE"
+                "transaction_type": "INVEST_FEE",
             },
         ]
     }

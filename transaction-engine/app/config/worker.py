@@ -17,8 +17,6 @@ RPC = {
 HTTP = {
     "LENDING_ENGINE": {
         "BASE_URL": os.getenv("LENDING_ENGINE_URL") or "http://127.0.0.1:5001",
-        "API": {
-            "CALLBACK": "/api/v1/callback/transaction"
-        }
+        "API": {"CALLBACK": "/api/v1/callback/transaction"},
     }
 }

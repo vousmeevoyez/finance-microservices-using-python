@@ -4,7 +4,7 @@ from bson import ObjectId
 from app.api.transactions.services import (
     refund,
     bulk_transaction,
-    aggregate_by_destination_id
+    aggregate_by_destination_id,
 )
 from app.api.models.transaction import Transaction
 
@@ -98,7 +98,7 @@ def test_aggregate_transactions():
             "destination_type": "some-destination-type",
             "amount": 99,
             "transaction_type": "some-transaction-type",
-        }
+        },
     ]
     result = aggregate_by_destination_id(transactions)
     for trx in result:
@@ -112,7 +112,8 @@ def test_aggregate_transactions():
 
 
 def test_bulk_transaction_upfront_fee(
-        setup_escrow_wallet, setup_profit_wallet, make_transaction):
+    setup_escrow_wallet, setup_profit_wallet, make_transaction
+):
     """ test simulate bulk transfer upfront fee from escrow to profit"""
     transactions = [
         {
@@ -156,7 +157,8 @@ def test_bulk_transaction_upfront_fee(
 
 
 def test_bulk_transaction_investor_fee(
-        setup_escrow_wallet, setup_profit_wallet, make_transaction):
+    setup_escrow_wallet, setup_profit_wallet, make_transaction
+):
     """ test simulate bulk transfer upfront fee from profit to escrow"""
     transactions = [
         {
@@ -185,7 +187,7 @@ def test_bulk_transaction_investor_fee(
             "destination_type": "ESCROW",
             "amount": -1,
             "transaction_type": "INVEST_FEE",
-        }
+        },
     ]
 
     result = bulk_transaction(transactions)

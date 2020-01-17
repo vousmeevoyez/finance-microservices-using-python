@@ -27,6 +27,7 @@ class InvestmentEmbed(EmbeddedDocument):
 @instance.register
 class Batch(Document):
     """ Virtual Account ODM """
+
     scheduled_at = DateTimeField(required=True)
     accumulated_amount = DecimalField(default=0)
     status = StrField(default="WAITING")  # COMPLETED | FAILED
