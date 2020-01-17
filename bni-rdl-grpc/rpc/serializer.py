@@ -58,6 +58,7 @@ class RdlAccountHistorySchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
+
 class RdlAccountSchema(Schema):
     """ schema used for rdl history"""
 

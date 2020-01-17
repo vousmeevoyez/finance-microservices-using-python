@@ -215,7 +215,7 @@ class BNIRdlProvider(BaseProvider):
         monthly_income,
         branch_opening,
         reason,
-        source_of_fund
+        source_of_fund,
     ):
         """ wrapper function to help create rdl """
         investor_resp = await self.create_investor(
@@ -263,7 +263,7 @@ class BNIRdlProvider(BaseProvider):
             cif_number=cif_number,
             reason=reason,
             source_of_fund=source_of_fund,
-            branch_opening=branch_opening
+            branch_opening=branch_opening,
         )
         return response
 
@@ -613,7 +613,6 @@ class BNIRdlProviderBuilder(BaseProvider):
     service_port = BNI_RDL["PORT"]
     contract = "BNI_AUTH_RDL"
     cache = ExpiringDict(max_len=1, max_age_seconds=3600)
-
 
     def __init__(self):
         super().__init__()

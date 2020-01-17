@@ -177,6 +177,7 @@ class TestBNIRdlProvider:
         assert result["id_number"]
         assert result["customer_name"]
         assert result["uuid"]
+
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.request")
     async def test_register_investor(self, mock_request):

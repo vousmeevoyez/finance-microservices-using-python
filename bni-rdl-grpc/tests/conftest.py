@@ -6,10 +6,7 @@ import pytest
 
 from asynctest import CoroutineMock, patch
 
-from autogen import (
-    rdl_account_pb2,
-    transfer_pb2
-)
+from autogen import rdl_account_pb2, transfer_pb2
 
 from rpc.services import RdlAccount, RdlTransfer
 
@@ -17,7 +14,7 @@ from rpc.services import RdlAccount, RdlTransfer
 @pytest.fixture
 def setup_local_client():
     """ fixture to connect grpc client to grpc server """
-    #return grpc.insecure_channel("127.0.0.1:5001")
+    # return grpc.insecure_channel("127.0.0.1:5001")
     return grpc.insecure_channel("dev.modana.id:11001")
 
 

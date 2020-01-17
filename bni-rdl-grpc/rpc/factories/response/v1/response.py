@@ -44,7 +44,7 @@ class BNIRdlResponse(AsyncHTTPResponse):
                         raise FailedResponseError(original_exception=response)
                 elif key == "parameters":
                     # check response code here
-                    if value["responseCode"] not in ACCEPTED_RESP_CODES: 
+                    if value["responseCode"] not in ACCEPTED_RESP_CODES:
                         # mark request as failed
                         raise FailedResponseError(original_exception=response)
         return True

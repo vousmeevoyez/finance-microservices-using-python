@@ -8,6 +8,7 @@ from autogen import (
     transfer_pb2_grpc,
 )
 
+
 def test_create_rdl(setup_local_client, generate_dummy_user):
     stub = rdl_account_pb2_grpc.RdlAccountStub(setup_local_client)
     request = rdl_account_pb2.CreateRdlRequest()
