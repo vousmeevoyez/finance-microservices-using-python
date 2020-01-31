@@ -21,6 +21,7 @@ class TransactionRequestSchema:
     parser.add_argument("transaction_type", type=str, required=True)
     parser.add_argument("amount", type=Decimal, required=True)
     parser.add_argument("reference_no", type=str)
+    parser.add_argument("notes", type=str)
 
 
 class BulkTransactionRequestSchema:

@@ -3,6 +3,7 @@ syntax = "proto3";
 service RdlAccount{
 	rpc CreateRdl(CreateRdlRequest) returns (CreateRdlResponse) {}
 	rpc GetHistory(GetHistoryRequest) returns (GetHistoryResponse) {}
+	rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse) {}
 }
 
 message CreateRdlRequest{
@@ -73,4 +74,15 @@ message GetHistoryResponse{
     int64 total_credit = 5;
     int64 end_balance = 6;
     repeated HistoryItem details = 7;
+}
+
+message GetBalanceRequest{
+    string account_no = 1;
+}
+
+message GetBalanceResponse{
+    string account_no = 1;
+    string customer_name = 2;
+    float balance = 3;
+    string uuid = 4;
 }

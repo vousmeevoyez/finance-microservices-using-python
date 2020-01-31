@@ -123,14 +123,14 @@ NOTIFICATIONS = {
             "INVESTOR_WITHDRAW": "Penarikan dana dari Rekening Dana Lender anda telah berhasil dilakukan: Waktu Penarikan: $withdraw_date Jumlah Penarikan: Rp. $withdraw_amount ",
             "LOAN_REQUEST_SEND": "Pengajuan pinjaman $loan_request_code Anda sudah diterima oleh Tim Analis Kami dan akan diproses lebih lanjut.",
             "LOAN_REQUEST_APPROVE": "Pengajuan Pinjaman $loan_request_code Anda telah disetujui, dan akan segera dicairkan dalam 1x24 jam.",
-            "LOAN_REQUEST_REJECT": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loanRequestCode tidak disetujui karena belum memenuhi Syarat dan Ketentuan yang berlaku.",
+            "LOAN_REQUEST_REJECT": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loan_request_code tidak disetujui karena belum memenuhi Syarat dan Ketentuan yang berlaku.",
             "LOAN_REQUEST_DISBURSE": "Selamat! No Pinjaman $loan_request_code yang Anda ajukan telah berhasil dicairkan ke rekening MODANAKU Anda. Segera melakukan pengecekan saldo MODANAKU Anda. Detil informasi pinjaman dapat dilihat pada menu PINJAMAN Anda.",
             "LOAN_REQUEST_REPAYMENT": "Terima kasih, Anda telah berhasil melakukan pembayaran pinjaman:<br><br>"
             + "Waktu Pembayaran: $repayment_date <br>"
             + "Nomor Pinjaman: $loan_request_code <br>"
             + "Jumlah Pembayaran: Rp. $repayment_amount <br>"
             + "Produk Pinjaman:  $product",
-            "LOAN_REQUEST_CANCEL": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loanRequestCode dibatalkan karena belum diproses dalam 1x24 jam",
+            "LOAN_REQUEST_CANCEL": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loan_request_code dibatalkan karena belum diproses dalam 1x24 jam",
             "LOAN_REQUEST_REPAYMENT_mobile": "Terima kasih, Anda telah berhasil melakukan pembayaran pinjaman: $product - $loan_request_code sejumlah $repayment_amount",
             "REMINDER_BEFORE_DUEDATE": "Pinjaman Anda $loan_request_code akan segera jatuh tempo. Pastikan saldo MODANAKU cukup untuk membayar jumlah pinjaman untuk menghindari denda keterlambatan.",
             "REMINDER_AFTER_DUEDATE": "Pinjaman Anda $loan_request_code telah jatuh tempo. Segera lakukan pembayaran manual via MODANAKU Anda, pembayaran setelah tanggal jatuh tempo akan dikenakan denda keterlambatan sesuai ketentuan yang berlaku",
@@ -145,8 +145,8 @@ NOTIFICATIONS = {
             "INVESTOR_WITHDRAW": "Penarikan dana dari Rekening Dana Lender anda telah berhasil dilakukan: Waktu Penarikan: $withdraw_date Jumlah Penarikan: Rp. $withdraw_amount ",
             "LOAN_REQUEST_SEND": "Pengajuan pinjaman $loan_request_code Anda sudah diterima oleh Tim Analis Kami dan akan diproses lebih lanjut.",
             "LOAN_REQUEST_APPROVE": "Pengajuan Pinjaman $loan_request_code Anda telah disetujui, dan akan segera dicairkan dalam 1x24 jam.",
-            "LOAN_REQUEST_REJECT": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loanRequestCode tidak disetujui karena belum memenuhi Syarat dan Ketentuan yang berlaku.",
-            "LOAN_REQUEST_CANCEL": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loanRequestCode dibatalkan karena belum diproses dalam 1x24 jam",
+            "LOAN_REQUEST_REJECT": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loan_request_code tidak disetujui karena belum memenuhi Syarat dan Ketentuan yang berlaku.",
+            "LOAN_REQUEST_CANCEL": "Mohon maaf, untuk saat ini pengajuan pinjaman Anda $loan_request_code dibatalkan karena belum diproses dalam 1x24 jam",
             "LOAN_REQUEST_DISBURSE": "Selamat! No Pinjaman $loan_request_code yang Anda ajukan telah berhasil dicairkan ke rekening MODANAKU Anda. Segera melakukan pengecekan saldo MODANAKU Anda. Detil informasi pinjaman dapat dilihat pada menu PINJAMAN Anda.",
             "LOAN_REQUEST_REPAYMENT": "Terima kasih, Anda telah berhasil melakukan pembayaran pinjaman:<br><br>"
             + "Waktu Pembayaran: $repayment_date <br>"

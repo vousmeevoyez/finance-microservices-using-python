@@ -52,6 +52,21 @@ class RdlAccount(rdl_account_pb2_grpc.RdlAccountServicer):
             Parse(json.dumps(result), response)
         return response
 
+    async def GetBalance(self, request, context):
+        """ handle RPC For getting RDL balance """
+        response = rdl_account_pb2.GetBalanceResponse()
+        try:
+            # based on request we generate the right provider!
+            provider = await generate_provider("BNI_RDL")
+            result = await provider.inquiry_account_balance(request.account_no)
+        except ProviderError as error:
+            message = extract_error(error)
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+            context.set_details(message)
+        else:
+            Parse(json.dumps(result), response)
+        return response
+
 
 class RdlTransfer(transfer_pb2_grpc.RdlTransferServicer):
     async def Transfer(self, request, context):

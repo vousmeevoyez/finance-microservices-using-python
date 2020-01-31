@@ -311,3 +311,43 @@ def test_rdl_to_withdraw(
 
     transaction.payment = payment
     transaction.commit()
+
+
+def test_adjustment(
+    setup_flask_app, setup_investor, setup_investor_wallet, setup_escrow_wallet
+):
+    """
+        test disburse flow from escrow to modanaku va
+    """
+
+    transaction = Transaction(
+        wallet_id=setup_investor_wallet.id,
+        source_id=setup_investor.id,
+        source_type="INVESTOR_RDL_ACC",
+        destination_id=setup_investor.id,
+        destination_type="INVESTOR",
+        amount=1000000,
+        transaction_type="CREDIT_ADJUSTMENT",
+    )
+
+    payment = PaymentEmbed()
+    payment.generate_payment_info(transaction)
+
+    transaction.payment = payment
+    transaction.commit()
+
+    transaction = Transaction(
+        wallet_id=setup_investor_wallet.id,
+        source_id=setup_investor.id,
+        source_type="INVESTOR_RDL_ACC",
+        destination_id=setup_investor.id,
+        destination_type="INVESTOR",
+        amount=-1000000,
+        transaction_type="DEBIT_ADJUSTMENT",
+    )
+
+    payment = PaymentEmbed()
+    payment.generate_payment_info(transaction)
+
+    transaction.payment = payment
+    transaction.commit()
