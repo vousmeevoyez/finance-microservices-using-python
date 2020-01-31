@@ -450,8 +450,8 @@ def make_loan_request(setup_borrower,
 
 
 @pytest.fixture(scope="module")
-def setup_investor_wallet(setup_user):
-    wallet = Wallet(user_id=setup_user.id, balance=1000)
+def setup_investor_wallet(setup_investor):
+    wallet = Wallet(user_id=setup_investor.user_id, balance=1000)
     wallet.commit()
     return wallet
 

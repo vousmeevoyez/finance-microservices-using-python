@@ -178,7 +178,7 @@ class Transaction(Document):
     transaction_type = StrField()
     amount = DecimalField(default=0)
     balance = DecimalField(default=0)
-    notes = StrField(default="")
+    notes = StrField(allow_none=True)
     status = StrField(default="PENDING")
     payment = EmbeddedField(PaymentEmbed)
     transaction_link_id = ObjectIdField(default=None)  # OPTIONAL -> to link another trx

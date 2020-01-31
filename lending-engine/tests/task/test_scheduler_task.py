@@ -1,5 +1,7 @@
 import pytz
 from datetime import date, datetime, timedelta
+from unittest.mock import Mock, patch
+
 from freezegun import freeze_time
 from task.scheduler.tasks import (
     check_grace_period,
@@ -502,6 +504,16 @@ def test_execute_transaction_batch_no_schedule(make_transaction_queue):
     assert queue.status == "WAITING"
 
 
-def test_generate_ojk_report():
+@patch("requests.post")
+@patch("requests.get")
+def test_generate_ojk_report(mock_get, mock_post):
     """ test generating ojk report"""
+    mock_post.return_value = Mock()
+    mock_post.return_value.status_code = 200
+    mock_post.return_value.json.return_value = {
+        "payload": {
+            "token": "sometoken"
+        }
+    }
+
     SchedulerTask().generate_ojk_report()

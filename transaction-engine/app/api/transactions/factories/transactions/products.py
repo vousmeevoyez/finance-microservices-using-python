@@ -84,6 +84,10 @@ class DebitRefundTransaction(DebitTransaction):
     """ transaction for refunding credit """
 
 
+class DebitAdjustmentTransaction(DebitTransaction):
+    """ transaction for adjusting debit """
+
+
 class DisburseTransaction(BankTransferTransaction):
     """ transaction for starting investment """
 
@@ -118,6 +122,10 @@ class TopUpRdlTransaction(AbstractTransaction):
 
 class CreditRefundTransaction(CreditTransaction):
     """ credit refund transaction """
+
+
+class CreditAdjustmentTransaction(CreditTransaction):
+    """ credit adjustment transaction """
 
 
 class ReceiveTransferTransaction(CreditTransaction):

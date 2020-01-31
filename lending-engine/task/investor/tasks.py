@@ -1,5 +1,4 @@
 import json
-import random
 
 import grpc
 from bson import ObjectId
@@ -31,7 +30,10 @@ from app.api.models.investment import (
 from app.api.models.bank import Bank
 from app.api.models.wallet import Wallet
 
-from app.api.lib.helper import send_notif
+from app.api.lib.helper import (
+    send_notif,
+    push_refresh_token
+)
 from app.api.lib.utils import backoff
 
 from app.config.worker import WORKER, RPC
@@ -137,24 +139,74 @@ class InvestorTask(BaseTask):
                 platform="web"
             )
 
+            # trigger refresh token
+            push_refresh_token(investor.user_id)
+
     @celery.task(
+        autoretry_for=(grpc.RpcError,),
+        retry_kwargs={"max_retries": 3},
         bind=True,
         max_retries=int(WORKER["MAX_RETRIES"]),
         task_soft_time_limit=WORKER["SOFT_LIMIT"],
         task_time_limit=WORKER["SOFT_LIMIT"],
         acks_late=WORKER["ACKS_LATE"],
     )
-    def send_approval_email(self, recipient, product_type="MOPINJAM", email_type="INVESTOR_APPROVE"):
-        """ background task to create investor approval email """
-        # send email via gRPC
-        request = email_pb2.SendEmailRequest()
-        request.recipient = recipient
-        request.product_type = "MOPINJAM"
-        request.email_type = "INVESTOR_APPROVE"
-        try:
-            channel = grpc.insecure_channel(RPC["NOTIFICATION"])
-            stub = email_pb2_grpc.EmailNotificationStub(channel)
-            stub.SendEmail(request)
-        except grpc.RpcError:
-            self.retry(countdown=backoff(self.request.retries))
-        return True
+    def sync_rdl(self, investor_id):
+        """ sync rdl balance internal and external """
+        # fetch investor
+        investor = Investor.find_one({"id": ObjectId(investor_id)})
+        if investor is None:
+            current_app.logger.info(
+                "{} investor not found".format(investor_id)
+            )
+            celery.control.revoke(self.request.id)
+
+        # extract rdl account no from bank accounts of investor
+        bank_accounts = list(filter(
+            lambda bank_acc: bank_acc.account_type == 'RDL_ACCOUNT',
+            investor.bank_accounts
+        ))
+
+        account_no = bank_accounts[0].account_no
+
+        request = rdl_account_pb2.GetBalanceRequest()
+        request.account_no = account_no
+
+        # establish connection
+        channel = grpc.insecure_channel(RPC["BNI_RDL"])
+        stub = rdl_account_pb2_grpc.RdlAccountStub(channel)
+        response = stub.GetBalance(request)
+
+        investor_wallet = Wallet.find_one({"user_id": investor.user_id})
+        # compare current internal balance and actual balance on rdl
+        # if there any different we trigger transaction creation
+        differences = 0
+
+        if investor_wallet.balance != response.balance:
+
+            differences = response.balance - investor_wallet.balance
+
+            payload = {
+                "wallet_id": str(investor_wallet.id),
+                "source_id": str(investor.id),
+                "source_type": "INVESTOR_RDL_ACC",
+                "destination_id": str(investor.id),
+                "destination_type": "INVESTOR",
+                "transaction_type": "CREDIT_ADJUSTMENT",
+                "amount": differences,
+                "notes": "Credit Balance Adjustment"
+            }
+
+            if differences < 0:
+                payload = {
+                    "wallet_id": str(investor_wallet.id),
+                    "source_id": str(investor.id),
+                    "source_type": "INVESTOR_RDL_ACC",
+                    "destination_id": str(investor.id),
+                    "destination_type": "INVESTOR",
+                    "transaction_type": "DEBIT_ADJUSTMENT",
+                    "amount": differences,
+                    "notes": "Debit Balance Adjustment"
+                }
+
+            return payload

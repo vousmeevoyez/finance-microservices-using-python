@@ -9,6 +9,7 @@ import json
 import random
 
 from string import Template
+import requests
 
 from app.api.lib.BniEnc3 import BniEnc, BNIVADecryptError
 from app.api.models.base import BankAccEmbed, StatusEmbed
@@ -24,12 +25,17 @@ from app.api.models.product import Product
 from app.api.models.notif import Notification
 
 from app.api.const import NOTIFICATIONS
+from app.config.external.investor import INVESTOR_BE
 
 from task.utility.tasks import UtilityTask
 
 
 class DecryptError(Exception):
     """ error raised to encapsulate decrypt error from BNI """
+
+
+class RefreshTokenError(Exception):
+    """ error raised when push refresh token error """
 
 
 def encrypt(client_id, secret_key, data):
@@ -129,3 +135,16 @@ def send_notif(
     notif = Notification(**in_app_info)
     notif.commit()
     return email_info, in_app_info
+
+
+def push_refresh_token(user_id):
+    url = INVESTOR_BE["BASE_URL"] + INVESTOR_BE["ENDPOINTS"]["REFRESH_TOKEN"]
+    try:
+        payload = {
+            "uid": str(user_id),
+            "socketioKey": INVESTOR_BE["SOCKETIO_KEY"]
+        }
+        r = requests.post(url, payload)
+        r.raise_for_status()
+    except requests.exceptions.HTTPError:
+        raise RefreshTokenError()

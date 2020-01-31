@@ -11,21 +11,15 @@ from task.investor.tasks import InvestorTask
 from celery.exceptions import MaxRetriesExceededError
 
 
-@patch("task.investor.rpc.email.email_pb2_grpc.EmailNotificationStub")
-def test_send_approval_email(mock_email):
-    mock_email.return_value.SendEmail.return_value = Mock(
-        status="OK"
-    )
-    result = InvestorTask().send_approval_email("kelvin@modana.id")
-    assert result
-
-
 @patch("task.investor.rpc.bni_rdl.rdl_account_pb2_grpc.RdlAccountStub")
-def test_create_rdl(mock_rdl, setup_investor_rdl, setup_investor):
+@patch("task.investor.tasks.push_refresh_token")
+def test_create_rdl(mock_push_refresh_token, mock_rdl, setup_investor_rdl, setup_investor):
     mock_rdl.return_value.CreateRdl.return_value = Mock(
         account_no="12345678123",
         journal_no="0000102312",
     )
+    mock_push_refresh_token.return_value = True
+
     InvestorTask().create_rdl(setup_investor.id)
 
     investor = Investor.find_one({"id": setup_investor.id})
@@ -55,3 +49,13 @@ def test_create_rdl_failed(mock_rdl, mock_celery, setup_investor_rdl, setup_inve
         # make sure status recorded!
         assert investor.approvals[0].status == "PROCESSING"
         assert investor.approvals[1].status == "FAILED"
+
+
+@patch("task.investor.rpc.bni_rdl.rdl_account_pb2_grpc.RdlAccountStub")
+def test_sync_rdl(mock_rdl, setup_investor_rdl):
+    mock_rdl.return_value.GetBalance.return_value = Mock(
+        balance=3000
+    )
+
+    result = InvestorTask().sync_rdl(setup_investor_rdl.investor_id)
+    assert result["amount"] == 3000

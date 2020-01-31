@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x19\x61utogen/rdl_account.proto\"\x9b\x06\n\x10\x43reateRdlRequest\x12\r\n\x05title\x18\x01 \x01(\t\x12\x12\n\nfirst_name\x18\x02 \x01(\t\x12\x13\n\x0bmiddle_name\x18\x03 \x01(\t\x12\x11\n\tlast_name\x18\x04 \x01(\t\x12\x13\n\x0bnpwp_option\x18\x05 \x01(\t\x12\x0f\n\x07npwp_no\x18\x06 \x01(\t\x12\x13\n\x0bnationality\x18\x07 \x01(\t\x12\x0f\n\x07\x63ountry\x18\x08 \x01(\t\x12\x10\n\x08religion\x18\t \x01(\t\x12\x13\n\x0b\x62irth_place\x18\n \x01(\t\x12\x12\n\nbirth_date\x18\x0b \x01(\t\x12\x0e\n\x06gender\x18\x0c \x01(\t\x12\x12\n\nis_married\x18\r \x01(\t\x12\x1a\n\x12mother_maiden_name\x18\x0e \x01(\t\x12\x10\n\x08job_code\x18\x0f \x01(\t\x12\x11\n\teducation\x18\x10 \x01(\t\x12\x11\n\tid_number\x18\x11 \x01(\t\x12\x17\n\x0fid_issuing_city\x18\x12 \x01(\t\x12\x16\n\x0eid_expire_date\x18\x13 \x01(\t\x12\x16\n\x0e\x61\x64\x64ress_street\x18\x14 \x01(\t\x12\x1b\n\x13\x61\x64\x64ress_rt_rw_perum\x18\x15 \x01(\t\x12\x19\n\x11\x61\x64\x64ress_kelurahan\x18\x16 \x01(\t\x12\x19\n\x11\x61\x64\x64ress_kecamatan\x18\x17 \x01(\t\x12\x10\n\x08zip_code\x18\x18 \x01(\t\x12\x16\n\x0ehome_phone_ext\x18\x19 \x01(\t\x12\x12\n\nhome_phone\x18\x1a \x01(\t\x12\x18\n\x10office_phone_ext\x18\x1b \x01(\t\x12\x14\n\x0coffice_phone\x18\x1c \x01(\t\x12\x18\n\x10mobile_phone_ext\x18\x1d \x01(\t\x12\x14\n\x0cmobile_phone\x18\x1e \x01(\t\x12\x0f\n\x07\x66\x61x_ext\x18\x1f \x01(\t\x12\x0b\n\x03\x66\x61x\x18  \x01(\t\x12\r\n\x05\x65mail\x18! \x01(\t\x12\x16\n\x0emonthly_income\x18\" \x01(\t\x12\x16\n\x0e\x62ranch_opening\x18# \x01(\t\x12\x0e\n\x06reason\x18$ \x01(\t\x12\x16\n\x0esource_of_fund\x18% \x01(\t\"I\n\x11\x43reateRdlResponse\x12\x12\n\njournal_no\x18\x01 \x01(\t\x12\x12\n\naccount_no\x18\x02 \x01(\t\x12\x0c\n\x04uuid\x18\x03 \x01(\t\"\x91\x01\n\x0bHistoryItem\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\ncreated_at\x18\x02 \x01(\t\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x03\x12\x0f\n\x07\x62\x61lance\x18\x04 \x01(\x03\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x12\x12\n\naccount_no\x18\x06 \x01(\t\x12\x18\n\x10transaction_type\x18\x07 \x01(\t\"\'\n\x11GetHistoryRequest\x12\x12\n\naccount_no\x18\x01 \x01(\t\"\xb0\x01\n\x12GetHistoryResponse\x12\x12\n\nstart_date\x18\x01 \x01(\t\x12\x10\n\x08\x65nd_date\x18\x02 \x01(\t\x12\x15\n\rstart_balance\x18\x03 \x01(\x03\x12\x13\n\x0btotal_debit\x18\x04 \x01(\x03\x12\x14\n\x0ctotal_credit\x18\x05 \x01(\x03\x12\x13\n\x0b\x65nd_balance\x18\x06 \x01(\x03\x12\x1d\n\x07\x64\x65tails\x18\x07 \x03(\x0b\x32\x0c.HistoryItem2{\n\nRdlAccount\x12\x34\n\tCreateRdl\x12\x11.CreateRdlRequest\x1a\x12.CreateRdlResponse\"\x00\x12\x37\n\nGetHistory\x12\x12.GetHistoryRequest\x1a\x13.GetHistoryResponse\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x19\x61utogen/rdl_account.proto\"\x9b\x06\n\x10\x43reateRdlRequest\x12\r\n\x05title\x18\x01 \x01(\t\x12\x12\n\nfirst_name\x18\x02 \x01(\t\x12\x13\n\x0bmiddle_name\x18\x03 \x01(\t\x12\x11\n\tlast_name\x18\x04 \x01(\t\x12\x13\n\x0bnpwp_option\x18\x05 \x01(\t\x12\x0f\n\x07npwp_no\x18\x06 \x01(\t\x12\x13\n\x0bnationality\x18\x07 \x01(\t\x12\x0f\n\x07\x63ountry\x18\x08 \x01(\t\x12\x10\n\x08religion\x18\t \x01(\t\x12\x13\n\x0b\x62irth_place\x18\n \x01(\t\x12\x12\n\nbirth_date\x18\x0b \x01(\t\x12\x0e\n\x06gender\x18\x0c \x01(\t\x12\x12\n\nis_married\x18\r \x01(\t\x12\x1a\n\x12mother_maiden_name\x18\x0e \x01(\t\x12\x10\n\x08job_code\x18\x0f \x01(\t\x12\x11\n\teducation\x18\x10 \x01(\t\x12\x11\n\tid_number\x18\x11 \x01(\t\x12\x17\n\x0fid_issuing_city\x18\x12 \x01(\t\x12\x16\n\x0eid_expire_date\x18\x13 \x01(\t\x12\x16\n\x0e\x61\x64\x64ress_street\x18\x14 \x01(\t\x12\x1b\n\x13\x61\x64\x64ress_rt_rw_perum\x18\x15 \x01(\t\x12\x19\n\x11\x61\x64\x64ress_kelurahan\x18\x16 \x01(\t\x12\x19\n\x11\x61\x64\x64ress_kecamatan\x18\x17 \x01(\t\x12\x10\n\x08zip_code\x18\x18 \x01(\t\x12\x16\n\x0ehome_phone_ext\x18\x19 \x01(\t\x12\x12\n\nhome_phone\x18\x1a \x01(\t\x12\x18\n\x10office_phone_ext\x18\x1b \x01(\t\x12\x14\n\x0coffice_phone\x18\x1c \x01(\t\x12\x18\n\x10mobile_phone_ext\x18\x1d \x01(\t\x12\x14\n\x0cmobile_phone\x18\x1e \x01(\t\x12\x0f\n\x07\x66\x61x_ext\x18\x1f \x01(\t\x12\x0b\n\x03\x66\x61x\x18  \x01(\t\x12\r\n\x05\x65mail\x18! \x01(\t\x12\x16\n\x0emonthly_income\x18\" \x01(\t\x12\x16\n\x0e\x62ranch_opening\x18# \x01(\t\x12\x0e\n\x06reason\x18$ \x01(\t\x12\x16\n\x0esource_of_fund\x18% \x01(\t\"I\n\x11\x43reateRdlResponse\x12\x12\n\njournal_no\x18\x01 \x01(\t\x12\x12\n\naccount_no\x18\x02 \x01(\t\x12\x0c\n\x04uuid\x18\x03 \x01(\t\"\x91\x01\n\x0bHistoryItem\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\ncreated_at\x18\x02 \x01(\t\x12\x0e\n\x06\x61mount\x18\x03 \x01(\x03\x12\x0f\n\x07\x62\x61lance\x18\x04 \x01(\x03\x12\x13\n\x0b\x64\x65scription\x18\x05 \x01(\t\x12\x12\n\naccount_no\x18\x06 \x01(\t\x12\x18\n\x10transaction_type\x18\x07 \x01(\t\"\'\n\x11GetHistoryRequest\x12\x12\n\naccount_no\x18\x01 \x01(\t\"\xb0\x01\n\x12GetHistoryResponse\x12\x12\n\nstart_date\x18\x01 \x01(\t\x12\x10\n\x08\x65nd_date\x18\x02 \x01(\t\x12\x15\n\rstart_balance\x18\x03 \x01(\x03\x12\x13\n\x0btotal_debit\x18\x04 \x01(\x03\x12\x14\n\x0ctotal_credit\x18\x05 \x01(\x03\x12\x13\n\x0b\x65nd_balance\x18\x06 \x01(\x03\x12\x1d\n\x07\x64\x65tails\x18\x07 \x03(\x0b\x32\x0c.HistoryItem\"\'\n\x11GetBalanceRequest\x12\x12\n\naccount_no\x18\x01 \x01(\t\"P\n\x12GetBalanceResponse\x12\x12\n\naccount_no\x18\x01 \x01(\t\x12\x15\n\rcustomer_name\x18\x02 \x01(\t\x12\x0f\n\x07\x62\x61lance\x18\x03 \x01(\x03\x32\xb4\x01\n\nRdlAccount\x12\x34\n\tCreateRdl\x12\x11.CreateRdlRequest\x1a\x12.CreateRdlResponse\"\x00\x12\x37\n\nGetHistory\x12\x12.GetHistoryRequest\x1a\x13.GetHistoryResponse\"\x00\x12\x37\n\nGetBalance\x12\x12.GetBalanceRequest\x1a\x13.GetBalanceResponse\"\x00\x62\x06proto3')
 )
 
 
@@ -530,12 +530,90 @@ _GETHISTORYRESPONSE = _descriptor.Descriptor(
   serialized_end=1268,
 )
 
+
+_GETBALANCEREQUEST = _descriptor.Descriptor(
+  name='GetBalanceRequest',
+  full_name='GetBalanceRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='account_no', full_name='GetBalanceRequest.account_no', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1270,
+  serialized_end=1309,
+)
+
+
+_GETBALANCERESPONSE = _descriptor.Descriptor(
+  name='GetBalanceResponse',
+  full_name='GetBalanceResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='account_no', full_name='GetBalanceResponse.account_no', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='customer_name', full_name='GetBalanceResponse.customer_name', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='balance', full_name='GetBalanceResponse.balance', index=2,
+      number=3, type=3, cpp_type=2, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1311,
+  serialized_end=1391,
+)
+
 _GETHISTORYRESPONSE.fields_by_name['details'].message_type = _HISTORYITEM
 DESCRIPTOR.message_types_by_name['CreateRdlRequest'] = _CREATERDLREQUEST
 DESCRIPTOR.message_types_by_name['CreateRdlResponse'] = _CREATERDLRESPONSE
 DESCRIPTOR.message_types_by_name['HistoryItem'] = _HISTORYITEM
 DESCRIPTOR.message_types_by_name['GetHistoryRequest'] = _GETHISTORYREQUEST
 DESCRIPTOR.message_types_by_name['GetHistoryResponse'] = _GETHISTORYRESPONSE
+DESCRIPTOR.message_types_by_name['GetBalanceRequest'] = _GETBALANCEREQUEST
+DESCRIPTOR.message_types_by_name['GetBalanceResponse'] = _GETBALANCERESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 CreateRdlRequest = _reflection.GeneratedProtocolMessageType('CreateRdlRequest', (_message.Message,), {
@@ -573,6 +651,20 @@ GetHistoryResponse = _reflection.GeneratedProtocolMessageType('GetHistoryRespons
   })
 _sym_db.RegisterMessage(GetHistoryResponse)
 
+GetBalanceRequest = _reflection.GeneratedProtocolMessageType('GetBalanceRequest', (_message.Message,), {
+  'DESCRIPTOR' : _GETBALANCEREQUEST,
+  '__module__' : 'autogen.rdl_account_pb2'
+  # @@protoc_insertion_point(class_scope:GetBalanceRequest)
+  })
+_sym_db.RegisterMessage(GetBalanceRequest)
+
+GetBalanceResponse = _reflection.GeneratedProtocolMessageType('GetBalanceResponse', (_message.Message,), {
+  'DESCRIPTOR' : _GETBALANCERESPONSE,
+  '__module__' : 'autogen.rdl_account_pb2'
+  # @@protoc_insertion_point(class_scope:GetBalanceResponse)
+  })
+_sym_db.RegisterMessage(GetBalanceResponse)
+
 
 
 _RDLACCOUNT = _descriptor.ServiceDescriptor(
@@ -581,8 +673,8 @@ _RDLACCOUNT = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1270,
-  serialized_end=1393,
+  serialized_start=1394,
+  serialized_end=1574,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateRdl',
@@ -600,6 +692,15 @@ _RDLACCOUNT = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_GETHISTORYREQUEST,
     output_type=_GETHISTORYRESPONSE,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetBalance',
+    full_name='RdlAccount.GetBalance',
+    index=2,
+    containing_service=None,
+    input_type=_GETBALANCEREQUEST,
+    output_type=_GETBALANCERESPONSE,
     serialized_options=None,
   ),
 ])

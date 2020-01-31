@@ -11,14 +11,15 @@ class TransactionError(BaseError):
 
 
 def process_transaction(
-    wallet_id,
-    source_id,
-    source_type,
-    destination_id,
-    destination_type,
-    amount,
-    transaction_type,
-    reference_no=None,
+        wallet_id,
+        source_id,
+        source_type,
+        destination_id,
+        destination_type,
+        amount,
+        transaction_type,
+        reference_no=None,
+        notes=None
 ):
 
     # first we need to convert every incoming string with object id
@@ -35,6 +36,7 @@ def process_transaction(
         destination_type=destination_type,
         amount=amount,
         transaction_type=transaction_type,
+        notes=notes
     )
 
     # third we generate payment
