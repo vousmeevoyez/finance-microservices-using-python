@@ -184,7 +184,7 @@ class InvestorTask(BaseTask):
 
         if investor_wallet.balance != response.balance:
 
-            differences = response.balance - investor_wallet.balance
+            differences = response.balance - float(investor_wallet.balance)
 
             payload = {
                 "wallet_id": str(investor_wallet.id),

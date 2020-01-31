@@ -53,9 +53,26 @@ def test_create_rdl_failed(mock_rdl, mock_celery, setup_investor_rdl, setup_inve
 
 @patch("task.investor.rpc.bni_rdl.rdl_account_pb2_grpc.RdlAccountStub")
 def test_sync_rdl(mock_rdl, setup_investor_rdl):
+    investor = Investor.find_one({"id": setup_investor_rdl.investor_id})
+    wallet = Wallet.find_one({"user_id": investor.user_id})
+    wallet.balance = 597500
+    wallet.commit()
+
     mock_rdl.return_value.GetBalance.return_value = Mock(
-        balance=3000
+        balance=10015500.00
     )
 
     result = InvestorTask().sync_rdl(setup_investor_rdl.investor_id)
-    assert result["amount"] == 3000
+    assert result["amount"] == 9418000.0
+
+    investor = Investor.find_one({"id": setup_investor_rdl.investor_id})
+    wallet = Wallet.find_one({"user_id": investor.user_id})
+    wallet.balance = 10015500.00
+    wallet.commit()
+
+    mock_rdl.return_value.GetBalance.return_value = Mock(
+        balance=597500
+    )
+
+    result = InvestorTask().sync_rdl(setup_investor_rdl.investor_id)
+    assert result["amount"] == -9418000.0
