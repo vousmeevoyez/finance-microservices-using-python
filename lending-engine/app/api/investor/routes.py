@@ -10,8 +10,14 @@ from app.api.investor import api
 from app.api.lib.core.routes import Routes
 from app.api.models.investor import Investor
 from app.api.serializer import WithdrawSchema
-from app.api.investor.modules.services import approve_investor, withdraw
-from app.api.investor.modules.fake_services import create_random_investor
+from app.api.investor.modules.services import (
+    approve_investor,
+    withdraw,
+    sync_balance
+)
+from app.api.investor.modules.fake_services import (
+    create_random_investor
+)
 
 
 @api.route("/random")
@@ -53,4 +59,16 @@ class InvestorWithdrawRoutes(Routes):
         request_data["investor_id"] = investor_id
 
         response = withdraw(**request_data)
+        return response
+
+
+@api.route("/<string:investor_id>/sync/")
+class InvestorSyncBalanceRoutes(Routes):
+    """
+         Sync Investor Balance
+        /investor-id/sync/
+    """
+
+    def post(self, investor_id):
+        response = sync_balance(investor_id)
         return response

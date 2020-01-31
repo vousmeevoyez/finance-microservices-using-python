@@ -17,6 +17,7 @@ class TrxSchema(ma.Schema):
     amount = fields.Decimal(required=True)
     transaction_type = fields.Str(required=True)
     reference_no = fields.Str()
+    notes = fields.Str()
 
 
 class BulkTrxSchema(ma.Schema):

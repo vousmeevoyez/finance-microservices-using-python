@@ -32,7 +32,7 @@ class TransactionTask(BaseTask):
     )
     def send_transaction(self, wallet_id, source_id, source_type,
                          destination_id, destination_type, amount,
-                         transaction_type, reference_no=None,
+                         transaction_type, reference_no=None, notes=None,
                          model=None, model_id=None, status=None):
         """ execute HTTP Api call to transaction engine where the actual
         transaction created """
@@ -49,7 +49,8 @@ class TransactionTask(BaseTask):
             "destination_type": destination_type,
             "amount": amount,
             "transaction_type": transaction_type,
-            "reference_no": reference_no
+            "reference_no": reference_no,
+            "notes": notes
         }
 
         try:

@@ -25,6 +25,7 @@ def single_transaction(
     amount,
     transaction_type,
     reference_no=None,
+    notes=None,
 ):
     # trigger single ledger (DEBIT/CREDIT) transaction creation
     trx = process_transaction(
@@ -36,6 +37,7 @@ def single_transaction(
         amount=amount,
         transaction_type=transaction_type,
         reference_no=reference_no,
+        notes=notes,
     )
     return trx
 

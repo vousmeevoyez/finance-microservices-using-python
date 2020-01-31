@@ -16,6 +16,7 @@ def generate_transaction(transaction, type_):
     factory.register("CREDIT_REFUND", DebitRefundTransaction)
     factory.register("DISBURSE", DisburseTransaction)
     factory.register("WITHDRAW", WithdrawTransaction)
+    factory.register("DEBIT_ADJUSTMENT", DebitAdjustmentTransaction)
     # CREDIT TYPE
     factory.register("TOP_UP_RDL", TopUpRdlTransaction)
     factory.register("RECEIVE_TRANSFER", ReceiveTransferTransaction)
@@ -24,6 +25,7 @@ def generate_transaction(transaction, type_):
     factory.register("RECEIVE_INVEST_FEE", ReceiveInvestFee)
     factory.register("RECEIVE_REPAYMENT", ReceiveRepayment)
     factory.register("DEBIT_REFUND", CreditRefundTransaction)
+    factory.register("CREDIT_ADJUSTMENT", CreditAdjustmentTransaction)
 
     generator = factory.get(type_)
     transaction.load(generator)
