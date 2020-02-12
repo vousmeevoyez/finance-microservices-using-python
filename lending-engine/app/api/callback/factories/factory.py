@@ -12,6 +12,10 @@ from app.api.callback.factories.products import (
     InvestFeeCallback,
     ReceiveInvestFeeCallback,
     InvestRepaymentCallback,
+    DebitRefundCallback,
+    CreditRefundCallback,
+    DebitAdjustmentCallback,
+    CreditAdjustmentCallback
 )
 
 
@@ -37,6 +41,10 @@ def generate_internal_callback(callback_info):
     factory.register("INVEST_FEE", InvestFeeCallback)
     factory.register("RECEIVE_INVEST_FEE", ReceiveInvestFeeCallback)
     factory.register("INVEST_REPAYMENT", InvestRepaymentCallback)
+    factory.register("CREDIT_REFUND", CreditRefundCallback)
+    factory.register("DEBIT_REFUND", DebitRefundCallback)
+    factory.register("CREDIT_ADJUSTMENT", CreditAdjustmentCallback)
+    factory.register("DEBIT_ADJUSTMENT", DebitAdjustmentCallback)
 
     generator = factory.get(callback_info.transaction_type)
     callback_info.load(generator)

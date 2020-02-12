@@ -423,3 +423,35 @@ class InvestRepaymentCallback(BaseSingleTrxCallback):
                 "product": product.product_name,
             },
         )
+
+
+class DoNothingCallback:
+    """ inherit from this base class to do nothing after receiving callback """
+
+    def __init__(self):
+        self.callback_info = None
+
+    def set(self, callback_info):
+        self.callback_info = callback_info
+
+    def update(self):
+        pass
+
+    def post_update(self):
+        pass
+
+
+class CreditRefundCallback(DoNothingCallback):
+    """ Doing nothing after receiving credit refund  """
+
+
+class DebitRefundCallback(DoNothingCallback):
+    """ Doing nothing after receiving debit refund  """
+
+
+class CreditAdjustmentCallback(DoNothingCallback):
+    """ Doing nothing after receiving adjust credit """
+
+
+class DebitAdjustmentCallback(DoNothingCallback):
+    """ Doing nothing after receiving adjust debit """
