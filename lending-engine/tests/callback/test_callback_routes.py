@@ -309,3 +309,18 @@ def test_internal_callback_receive_invest_fee(
         {"id": loan_request.id}
     )
     assert any("RECEIVE_FEE_FROM_PROFIT_COMPLETED" in lr.status for lr in loan_request.list_of_status)
+
+
+def test_internal_callback_do_nothing(setup_client):
+    """ test internal callback after we successfully send escrow investor
+    profit to escrow"""
+
+    data = {
+        "transaction_id": "some-transaction-id",
+        "transaction_type": "CREDIT_REFUND",
+        "status": "COMPLETED",
+    }
+    result = internal_callback(setup_client, data)
+    response = result.get_json()
+    assert result.status_code == 200
+    assert response["status"] == "CREDIT_REFUND_COMPLETED"
