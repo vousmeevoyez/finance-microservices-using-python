@@ -59,6 +59,7 @@ class PaymentEmbed(EmbeddedDocument):
     provider = StrField()  # BNI | BCA
     method = StrField()  # INHOUSE | INTERBANK
     status = StrField(default="PENDING")  # PENDING | COMPLETED | FAILED
+    request_reference_no = StrField(allow_none=True)  # Request Payment references
     reference_no = StrField(allow_none=True)  # Payment references
     notes = StrField()  # Payment References
     created_at = DateTimeField(required=True, attribute="ca", default=datetime.utcnow)
