@@ -17,11 +17,12 @@ def test_external_transfer(mock_transfer, setup_investment_with_transaction):
 
     mock_transfer.return_value.Transfer.return_value = Mock(response_uuid="12345678910")
 
-    transaction_id, result, reference_no = ExternalTask().transfer(transaction.id)
+    transaction_id, result, reference_no, transfer_ref_number = ExternalTask().transfer(transaction.id)
     # make sure transaction applied
     assert transaction_id == transaction.id
     assert result == "COMPLETED"
     assert reference_no == "12345678910"
+    assert transfer_ref_number
 
 
 @patch("task.external.factories.helper.RdlTransferStub")
@@ -63,20 +64,21 @@ def test_apply_external(setup_investment_with_transaction):
     investment, loan_request, transactions = setup_investment_with_transaction
     transaction = transactions[0]
 
-    transfer = str(transaction.id), "COMPLETED", "12345678910"
+    transfer = str(transaction.id), "COMPLETED", "12345678910", "trf-ref"
     ExternalTask().apply_external(transfer)
 
     # make sure transaction applied
     transaction = Transaction.find_one({"_id": transaction.id})
     assert transaction.payment.status == "COMPLETED"
     assert transaction.payment.reference_no == "12345678910"
+    assert transaction.payment.request_reference_no == "trf-ref"
 
 
 def test_apply_external_failed(setup_investment_with_transaction):
     investment, loan_request, transactions = setup_investment_with_transaction
     transaction = transactions[0]
 
-    transfer = str(transaction.id), "FAILED", None
+    transfer = str(transaction.id), "FAILED", None, "trf-ref"
     ExternalTask().apply_external(transfer)
 
     # make sure trigger refund

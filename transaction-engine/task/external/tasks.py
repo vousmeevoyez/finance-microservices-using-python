@@ -95,11 +95,13 @@ class ExternalTask(celery.Task):
                 self.retry(countdown=backoff(self.request.retries))
             except MaxRetriesExceededError:
                 status = "FAILED"
-                return transaction_id, status, None
+                return transaction_id, status, None, transfer_ref_number
         # clear cache
         generate_ref_number.cache_clear()
         status = "COMPLETED"
-        return transaction_id, status, response_uuid
+        # we return all this information so it can be applied by another celery
+        # task
+        return transaction_id, status, response_uuid, transfer_ref_number
 
     @celery.task(
         bind=True,
@@ -110,7 +112,7 @@ class ExternalTask(celery.Task):
     )
     def apply_external(self, transfer):
         """ mark successful transfer as completed """
-        transaction_id, status, reference_no = transfer
+        transaction_id, status, reference_no, transfer_ref_number = transfer
         # start session!
         with current_app.connection.start_session(causal_consistency=True) as session:
             with session.start_transaction():
@@ -121,6 +123,8 @@ class ExternalTask(celery.Task):
                         {"_id": ObjectId(transaction_id)},
                         {
                             "$set": {
+                                "payment.request_reference_no":
+                                transfer_ref_number,
                                 "payment.reference_no": reference_no,
                                 "payment.status": status,
                             }
