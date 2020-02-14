@@ -164,7 +164,8 @@ class LoanRequestServices:
         """ process repayment """
         # disable repayment virtual account
         VirtualAccountTask().disable_va.apply_async(
-            kwargs={"model_name": "LoanRequest", "model_id": str(self.loan_request.id)},
+            kwargs={"model_name": "LoanRequest", "model_id":
+                    str(self.loan_request.id), "label": "REPAYMENT"},
             queue="virtual_account",
         )
 
