@@ -137,7 +137,8 @@ class InvestmentServices:
         investment_va = {
             "model_name": "Investment",
             "model_id": str(self.investment.id),
-            "va_type": "INVESTMENT",
+            "va_type": "CREDIT",
+            "label": "INVESTMENT"
         }
         # must be chained otherwise there's possibility when execute transfer
         # to investment va the va itself hasn't been created
@@ -226,7 +227,7 @@ class InvestmentServices:
             kwargs={
                 "model_name": "Investment",
                 "model_id": str(self.investment.id),
-                "label": "REPAYMENT",
+                "label": "INVESTMENT",
             },
             queue="virtual_account",
         )
