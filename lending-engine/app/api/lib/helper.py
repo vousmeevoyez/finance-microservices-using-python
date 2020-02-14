@@ -130,7 +130,9 @@ def send_notif(
     UtilityTask().send_email.apply_async(kwargs=email_info, queue="utility")
 
     if platform == "mobile":
-        UtilityTask().send_push_notif.apply_async(kwargs=push_info, queue="utility")
+        # need to prevent empty device token for being sent here
+        if device_token is not None:
+            UtilityTask().send_push_notif.apply_async(kwargs=push_info, queue="utility")
 
     notif = Notification(**in_app_info)
     notif.commit()
