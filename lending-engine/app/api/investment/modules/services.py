@@ -137,7 +137,7 @@ class InvestmentServices:
         investment_va = {
             "model_name": "Investment",
             "model_id": str(self.investment.id),
-            "va_type": "CREDIT",
+            "va_type": "INVESTMENT",
             "label": "INVESTMENT"
         }
         # must be chained otherwise there's possibility when execute transfer
