@@ -92,17 +92,21 @@ def calculate_rate(type_, amount):
     return rate
 
 
-def send_borrower_notif(borrower_id, notif_type):
+def send_borrower_notif(borrower_id, notif_type, loan_request_id):
     """ wrapper function to help borrower notif """
     borrower = Borrower.find_one({"id": borrower_id})
     user = User.find_one({"id": borrower.user_id})
+    loan = LoanRequest.find_one({"id": loan_request_id})
 
     email_notif, in_app_notif = send_notif(
         recipient=borrower.email,
         user_id=borrower.user_id,
         notif_type=notif_type,
         platform="mobile",
-        device_token=user.device_id
+        device_token=user.device_id,
+        custom_content={
+            "loan_request_code": loan.loan_request_code
+        }
     )
 
 
@@ -369,8 +373,11 @@ class SchedulerTask(BaseTask):
         )
 
         for loan_request in loan_requests:
-            send_borrower_notif(loan_request["borrower_id"],
-                                "REMINDER_BEFORE_DUEDATE")
+            send_borrower_notif(
+                loan_request["borrower_id"],
+                "REMINDER_BEFORE_DUEDATE",
+                loan_request["_id"]
+            )
 
     @celery.task(
         bind=True,
@@ -412,8 +419,11 @@ class SchedulerTask(BaseTask):
         )
 
         for loan_request in loan_requests:
-            send_borrower_notif(loan_request["borrower_id"],
-                                "REMINDER_AFTER_DUEDATE")
+            send_borrower_notif(
+                loan_request["borrower_id"],
+                "REMINDER_AFTER_DUEDATE",
+                loan_request["_id"]
+            )
 
     @celery.task(
         bind=True,
@@ -455,8 +465,11 @@ class SchedulerTask(BaseTask):
                 }},
             )
 
-            send_borrower_notif(loan_request["borrower_id"],
-                                "LOAN_REQUEST_CANCEL")
+            send_borrower_notif(
+                loan_request["borrower_id"],
+                "LOAN_REQUEST_CANCEL",
+                loan_request["_id"]
+            )
 
     @celery.task(
         bind=True,
@@ -506,8 +519,11 @@ class SchedulerTask(BaseTask):
                 }},
             )
 
-            send_borrower_notif(loan_request["borrower_id"],
-                                "LOAN_REQUEST_CANCEL")
+            send_borrower_notif(
+                loan_request["borrower_id"],
+                "LOAN_REQUEST_CANCEL",
+                loan_request["_id"]
+            )
 
     @celery.task(
         bind=True,
