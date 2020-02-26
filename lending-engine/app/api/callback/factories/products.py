@@ -216,7 +216,7 @@ class DisburseCallback(BaseSingleTrxCallback):
             repayment_va = {
                 "model_name": "LoanRequest",
                 "model_id": str(loan_request.id),
-                "va_type": "CREDIT",
+                "va_type": "REPAYMENT",
                 "custom_status": "REPAYMENT",
                 "label": "REPAYMENT",
             }
