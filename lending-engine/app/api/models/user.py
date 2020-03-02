@@ -3,7 +3,13 @@
 """
 from datetime import datetime
 from umongo import Document, EmbeddedDocument
-from umongo.fields import EmbeddedField, StrField, DateTimeField
+from umongo.fields import (
+    EmbeddedField,
+    StrField,
+    DateTimeField,
+    ObjectIdField,
+    ListField
+)
 from app.api import instance
 from app.api.models.base import BaseDocument
 
@@ -33,6 +39,10 @@ class User(BaseDocument):
     is_email_verified = StrField(attribute="iev")
     user_virtual_account = EmbeddedField(UserVaEmbed, attribute="uVA")
     next_payment_date = StrField(attribute="npd")
+    investor_id = ObjectIdField()
+    permissions = ListField(StrField())
+    created_by = ObjectIdField(attribute="createdBy")
+    name = StrField()
 
     class Meta:
         collection_name = "lender_users"

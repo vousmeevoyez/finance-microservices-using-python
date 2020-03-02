@@ -77,10 +77,12 @@ class Product(BaseDocument):
     product_type = StrField(attribute="pt")
     is_active = BoolField(attribute="ia", default=True)
     created_by = ObjectIdField(attribute="cb")
-    max_salary = IntField(attribute="mls", defaul=0)
+    max_salary = IntField(attribute="mls", default=1)
     max_salary_type = StrField(attribute="mlst")
     interests = EmbeddedField(InterestEmbed)
     freeze_period = IntField(attribute="fp")
+    product_code = StrField(attribute="pc")
+    delay_after_reject = IntField(attribute="dar", default=1)
 
     class Meta:
         collection_name = "lender_products"
