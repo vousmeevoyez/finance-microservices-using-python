@@ -7,7 +7,7 @@ services:
                   dockerfile: dockerfiles/flask/Dockerfile
                 image: transaction-engine-services
                 env_file: .env
-                entrypoint: make run
+                entrypoint: make run-gunicorn
                 restart: unless-stopped
                 ports:
                 - 12000:5000

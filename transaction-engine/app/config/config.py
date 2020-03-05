@@ -4,7 +4,6 @@
     This is module for storing all configuration for various environments
 """
 import os
-from pymongo import ReadPreference
 
 
 class Config:
@@ -96,6 +95,7 @@ class ProductionConfig(Config):
         + Config.MONGO_DBNAME
         + "?replicaSet="
         + Config.MONGO_REPLICA_SET
+        + "&retryWrites=true"
     )
 
     CELERY_RESULT_BACKEND = "mongodb"

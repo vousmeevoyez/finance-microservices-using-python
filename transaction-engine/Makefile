@@ -34,6 +34,8 @@ proto:
 ## run application locally
 run:
 	python manage.py run
+run-gunicorn:
+	gunicorn -b transaction-flask:5000 -w 4 manage:app --log-level INFO --access-logfile -
 transaction-worker:
 	celery worker -A task.worker.celery --loglevel=info --autoscale=4,2 -Q transaction -n transaction@%h
 utility-worker:

@@ -8,6 +8,8 @@ from bson.decimal128 import Decimal128
 from datetime import datetime
 
 import pymongo
+from pymongo.read_concern import ReadConcern
+from pymongo.write_concern import WriteConcern
 
 from flask import current_app
 from app.api import sentry, celery
@@ -51,44 +53,69 @@ class TransactionTask(celery.Task):
         balance """
 
         # begin mongo session here
-        with current_app.connection.start_session(causal_consistency=True) as session:
-            with session.start_transaction():
+        with current_app.connection.start_session(
+            causal_consistency=True
+        ) as session:
+            with session.start_transaction(
+                    read_concern=ReadConcern("majority"),
+                    write_concern=WriteConcern("majority")
+            ):
                 try:
-                    # fetch transaction first to get transaction info
-                    transaction = Transaction.find_one(
-                        {"_id": ObjectId(transaction_id)}
+                    # start locking the transaction
+                    transaction_lock = ObjectId()
+                    transaction = Transaction.collection.find_one_and_update(
+                        {"_id": ObjectId(transaction_id)},
+                        {
+                            "$set": {
+                                "lock": transaction_lock
+                            }
+                        }
                     )
-                    current_trx_amount = int(transaction.amount)
-
-                    # fetch wallet to get latest wallet info
-                    wallet = Wallet.find_one({"_id": transaction.wallet_id})
-                    current_balance = wallet.balance
 
                     # deduct wallet balance based on how much the transactioin
-                    wallet = Wallet.collection.update_one(
-                        {"_id": transaction.wallet_id},
-                        {"$inc": {"balance": current_trx_amount}},
-                        session=session,
+                    wallet = Wallet.collection.find_one_and_update(
+                        {"_id": transaction["wallet_id"]},
+                        {
+                            "$set": {
+                                "lock": ObjectId(),
+                            },
+                            "$inc": {
+                                "balance": transaction["amount"]
+                            }
+                        },
+                        session=session
                     )
 
                     # finally apply balance based on current balance -
                     # transaction amount
-                    after_balance = current_balance + current_trx_amount
-                    Transaction.collection.update_one(
+                    after_balance = wallet["balance"].to_decimal() + \
+                        transaction["amount"].to_decimal()
+                    if after_balance < 0:
+                        session.abort_transaction()
+                        self.retry()
+
+                    Transaction.collection.find_one_and_update(
                         {"_id": ObjectId(transaction_id)},
                         {
                             "$set": {
                                 "status": "APPLIED",
-                                "balance": Decimal128(after_balance),
-                            }
+                                "balance": Decimal128(after_balance)
+                            },
+                            "$unset": {"lock": transaction_lock}
                         },
+                        session=session
                     )
 
                     session.commit_transaction()
 
                 except (
-                    pymongo.errors.ConnectionFailure,
-                    pymongo.errors.OperationFailure,
+                        pymongo.errors.ConnectionFailure,
+                        pymongo.errors.OperationFailure,
+                        pymongo.errors.InvalidOperation,
                 ) as exc:
-                    current_app.logger.info("retry.. ".format(transaction_id))
-                    self.retry(countdown=backoff(self.request.retries), exc=exc)
+                    current_app.logger.info("retry.{}".format(transaction_id))
+                    session.abort_transaction()
+                    self.retry(
+                        countdown=1,
+                        exc=exc
+                    )
