@@ -144,6 +144,7 @@ def test_api_receive_upfront_fee(
         "destination_type": "PROFIT",
         "amount": 1000000,
         "transaction_type": "RECEIVE_UPFRONT_FEE",
+        "reference_no": "some-reference-no"
     }
     result = create_transaction(setup_client, payload)
     response = result.get_json()
@@ -155,11 +156,11 @@ def test_api_receive_upfront_fee(
     assert transaction.transaction_type == "RECEIVE_UPFRONT_FEE"
     # make sure the actual payment is correct!
     assert transaction.payment.payment_type == "CREDIT"
-    assert transaction.payment.reference_no is None
-    assert transaction.payment.provider == "BNI_OPG"
+    assert transaction.payment.reference_no == "some-reference-no"
+    assert transaction.payment.provider == "INTERNAL"
     assert transaction.payment.bank_code == "009"
-    assert transaction.payment.status == "PENDING"
-    assert transaction.payment.method == "INHOUSE_TRANSFER"
+    assert transaction.payment.status == "COMPLETED"
+    assert transaction.payment.method == "INTERNAL_CALLBACK"
     assert transaction.payment.source == "111222334"
     assert transaction.payment.destination == "000022334555"
 
@@ -278,12 +279,13 @@ def test_api_receive_invest_fee(setup_client, setup_escrow_wallet, setup_profit_
     assert transaction.transaction_type == "RECEIVE_INVEST_FEE"
     # make sure the actual payment is correct!
     assert transaction.payment.payment_type == "CREDIT"
-    assert transaction.payment.provider == "BNI_OPG"
+    assert transaction.payment.provider == "INTERNAL"
     assert transaction.payment.bank_code == "009"
-    assert transaction.payment.status == "PENDING"
-    assert transaction.payment.method == "INHOUSE_TRANSFER"
+    assert transaction.payment.status == "COMPLETED"
+    assert transaction.payment.method == "INTERNAL_CALLBACK"
     assert transaction.payment.source == "000022334555"
     assert transaction.payment.destination == "111222334"
+    assert transaction.payment.reference_no == "123123333"
 
 
 def test_api_invest_repayment(setup_client, setup_escrow_wallet, setup_investor):

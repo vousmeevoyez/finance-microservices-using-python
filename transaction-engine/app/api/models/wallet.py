@@ -16,6 +16,7 @@ class Wallet(BaseBankDocument):
     label = StrField()
     wallet_type = StrField()  # INVESTOR | MASTER ACC | ETC
     pin = StrField()  # hashed wallet pin
+    lock = ObjectIdField()  # lock status
 
     class Meta:
         collection_name = "lender_wallets"

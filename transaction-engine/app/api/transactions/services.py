@@ -7,9 +7,13 @@ from collections import Counter
 from bson import ObjectId
 
 from app.api.models.transaction import Transaction
+from app.api.models.wallet import Wallet
 from app.api.transactions.factories.helper import process_transaction
 
+from app.api.const import RESPONSE as error_response
+from app.api.const import TRANSFER_TYPES
 from app.api.lib.core.exceptions import BaseError
+from app.api.lib.core.http_error import UnprocessableEntity
 
 
 class ServicesError(BaseError):
@@ -17,16 +21,27 @@ class ServicesError(BaseError):
 
 
 def single_transaction(
-    wallet_id,
-    source_id,
-    source_type,
-    destination_id,
-    destination_type,
-    amount,
-    transaction_type,
-    reference_no=None,
-    notes=None,
+        wallet_id,
+        source_id,
+        source_type,
+        destination_id,
+        destination_type,
+        amount,
+        transaction_type,
+        reference_no=None,
+        notes=None
 ):
+
+    # first need to make sure the wallet balance is enough for this transaction
+    # if its active
+    if transaction_type in TRANSFER_TYPES["ACTIVE"]:
+        wallet = Wallet.find_one({"id": ObjectId(wallet_id)})
+        if wallet.balance < amount:
+            raise UnprocessableEntity(
+                error_response["INSUFFICIENT_BALANCE"]["TITLE"],
+                error_response["INSUFFICIENT_BALANCE"]["MESSAGE"]
+            )
+
     # trigger single ledger (DEBIT/CREDIT) transaction creation
     trx = process_transaction(
         wallet_id=wallet_id,

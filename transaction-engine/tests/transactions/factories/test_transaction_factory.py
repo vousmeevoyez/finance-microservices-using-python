@@ -25,6 +25,7 @@ def test_process_top_up_transaction(
     assert result.payment.bank_code == "009"
     assert result.payment.source == "01231231312"
     assert result.payment.destination == "01231231312"
+    assert result.payment.status == "COMPLETED"
 
 
 def test_process_rdl_to_investment_va(
@@ -55,6 +56,7 @@ def test_process_rdl_to_investment_va(
     assert result.payment.bank_code == "009"
     assert result.payment.source == "01231231312"  # RDL ACCOUNT
     assert result.payment.destination == "9889909612123123"  # INVESTMENT VA
+    assert result.payment.status == "PENDING"
 
     # should be triggered via callback
     escrow_trx_id = process_transaction(
@@ -77,6 +79,7 @@ def test_process_rdl_to_investment_va(
     assert result.payment.provider == "BNI_VA"
     assert result.payment.source == "01231231312"  # FROM RDL ACCOUNT
     assert result.payment.destination == "9889909612123123"  # INVESTMENT VA
+    assert result.payment.status == "COMPLETED"
 
 
 def test_process_investment_to_profit(
@@ -103,6 +106,7 @@ def test_process_investment_to_profit(
     assert result.payment.bank_code == "009"
     assert result.payment.source == "111222334"  # ESCROW MASTER ACCOUNT
     assert result.payment.destination == "000022334555"  # PROFIT MASTER
+    assert result.payment.status == "PENDING"
 
     # should be triggered when the previous transaction success
     profit_trx_id = process_transaction(
@@ -119,12 +123,13 @@ def test_process_investment_to_profit(
     result = Transaction.find_one({"_id": profit_trx_id})
     assert result.status == "PENDING"
     assert result.amount == 1000000
-    assert result.payment.method == "INHOUSE_TRANSFER"
+    assert result.payment.method == "INTERNAL_CALLBACK"
     assert result.payment.payment_type == "CREDIT"
-    assert result.payment.provider == "BNI_OPG"
+    assert result.payment.provider == "INTERNAL"
     assert result.payment.bank_code == "009"
     assert result.payment.source == "111222334"  # FROM ESCROW MASTER ACCOUNT
     assert result.payment.destination == "000022334555"  # PROFI MASTER
+    assert result.payment.status == "COMPLETED"
 
 
 def test_process_escrow_to_modanaku(
@@ -152,3 +157,4 @@ def test_process_escrow_to_modanaku(
     assert result.payment.bank_code == "009"
     assert result.payment.source == "111222334"  # ESCROW MASTER ACCOUNT
     assert result.payment.destination == "9889909600023123"  # PROFIT MASTER
+    assert result.payment.status == "PENDING"

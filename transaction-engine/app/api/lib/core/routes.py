@@ -7,7 +7,7 @@ from flask_restplus import Resource  # pylint: disable=import-error
 from marshmallow import ValidationError
 
 from app.api.lib.core.http_error import BadRequest, RequestNotFound
-from app.api.lib.core.message import RESPONSE as error_response
+from app.api.const import RESPONSE as error_response
 
 
 class CoreRoutes:

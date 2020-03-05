@@ -124,6 +124,7 @@ class PaymentEmbed(EmbeddedDocument):
         elif transaction_type in TRANSFER_TYPES["INTERNAL"]:
             provider = "INTERNAL"
             method = "INTERNAL_TRANSFER"
+            status = "COMPLETED"
         # if its PASSIVE
         elif transaction_type in TRANSFER_TYPES["PASSIVE"]:
             method = "DEPOSIT_CALLBACK"
@@ -132,6 +133,12 @@ class PaymentEmbed(EmbeddedDocument):
                 provider = "BNI_RDL"
             else:
                 provider = "BNI_VA"
+        # if its custom passive, custom callback that we created for getting
+        # notif if its transfer between master
+        elif transaction_type in TRANSFER_TYPES["CUSTOM_PASSIVE"]:
+            provider = "INTERNAL"
+            method = "INTERNAL_CALLBACK"
+            status = "COMPLETED"
 
         return provider, method, status
 

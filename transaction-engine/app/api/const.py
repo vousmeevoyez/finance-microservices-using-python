@@ -4,6 +4,13 @@
 import os
 
 
+RESPONSE = {
+    "INVALID_PARAMETER": {"TITLE": "INVALID_PARAMETER", "MESSAGE": "Invalid Parameter"},
+    "INSUFFICIENT_BALANCE": {"TITLE": "INSUFFICIENT_BALANCE", "MESSAGE":
+                             "Insufficient Balance"},
+}
+
+
 # this list of value used if this used as type we know which bank
 # account to pick
 TYPE_TO_BANK_TYPES = {
@@ -44,14 +51,20 @@ TRANSFER_TYPES = {
         "DISBURSE",
         "UPFRONT_FEE",
         "INVEST_FEE",
-        "RECEIVE_UPFRONT_FEE",
         "INVEST_REPAYMENT",
-        "RECEIVE_INVEST_FEE",
         "WITHDRAW",
     ],
     "INTERNAL": ["DEBIT_REFUND", "CREDIT_REFUND", "DEBIT_ADJUSTMENT",
                  "CREDIT_ADJUSTMENT"],
-    "PASSIVE": ["RECEIVE_INVEST", "RECEIVE_REPAYMENT", "TOP_UP_RDL"],
+    # this is all potential transaction that receive notification from BNI
+    "PASSIVE": [
+        "RECEIVE_INVEST", "RECEIVE_REPAYMENT", "TOP_UP_RDL"
+    ],
+    # because we dont receive any notif from BNI but we still need notification
+    # we add new flag called custom passive
+    "CUSTOM_PASSIVE": [
+        "RECEIVE_INVEST_FEE", "RECEIVE_UPFRONT_FEE"
+    ]
 }
 
 WORKER = {
