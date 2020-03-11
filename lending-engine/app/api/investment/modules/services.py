@@ -37,7 +37,7 @@ class InvestmentServiceError(BaseError):
 
 
 class InvestmentServices:
-    def __init__(self, investment_id):
+    def __init__(self, investment_id, reference_no=None):
         investment = Investment.find_one({"id": ObjectId(investment_id)})
         if investment is None:
             raise InvestmentNotFound()
@@ -48,6 +48,8 @@ class InvestmentServices:
         self.investment = investment
         self.investor = investor
         self.escrow_wallet = escrow_wallet
+        # add payment reference if available
+        self.reference_no = reference_no
 
     def _build_invest_payload(self):
         """ request payload for investing"""
@@ -81,6 +83,7 @@ class InvestmentServices:
             "destination_type": "INVESTMENT",
             "amount": int(self.investment.total_amount),
             "transaction_type": "RECEIVE_INVEST",
+            "reference_no": self.reference_no,
             "model": "Investment",
             "model_id": str(self.investment.id),
             "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
@@ -138,7 +141,7 @@ class InvestmentServices:
             "model_name": "Investment",
             "model_id": str(self.investment.id),
             "va_type": "INVESTMENT",
-            "label": "INVESTMENT"
+            "label": "INVESTMENT",
         }
         # must be chained otherwise there's possibility when execute transfer
         # to investment va the va itself hasn't been created
@@ -170,10 +173,10 @@ class InvestmentServices:
         # schedule upfront fee to batch
         upfront_fee_payload["schedule_name"] = "UPFRONT_FEE"
         queue_id = schedule_transaction(**upfront_fee_payload)
-        self.investment.list_of_status.append(
-            {"status": "SEND_TO_PROFIT_QUEUED", "queue_id": queue_id}
+        Investment.collection.update_one(
+            {"_id": self.investment.id},
+            {"$push": {"lst": {"st": "SEND_TO_PROFIT_QUEUED", "queue_id": queue_id}}},
         )
-        self.investment.commit()
         return upfront_fee_payload
 
     def execute_disbursements(self):

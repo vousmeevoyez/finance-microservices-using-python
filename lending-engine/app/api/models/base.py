@@ -134,30 +134,6 @@ class BaseBankDocument(BaseDocument):
         bank_accounts = list(result)[0]
         return bank_accounts["ba"][0]
 
-    def get_by_transaction(self, transaction_id):
-        """ common inteface for all base document that store status """
-        # generate matcher and projection here
-        result = self.collection.aggregate(
-            [
-                {
-                    "$match": {
-                        "lst": {
-                            "$elemMatch": {
-                                "$and": [{"transaction_id": ObjectId(transaction_id)}]
-                            }
-                        }
-                    }
-                },
-                {"$project": {"_id": 1}},
-            ]
-        )
-        lists = list(result)
-        try:
-            transaction = lists[0]["_id"]
-        except IndexError:
-            raise TransactionStatusNotFound
-        return transaction
-
     def get_by_transactions(self, transaction_id):
         """ common inteface for one trx id to multiple trx """
         # generate matcher and projection here

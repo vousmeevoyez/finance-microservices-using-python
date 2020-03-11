@@ -87,7 +87,9 @@ def top_up_va(account_no, amount, payment_ntb, va_type):
             )
         else:
             # continue investment flow!
-            result = InvestmentServices(investment["id"]).continue_investment()
+            result = InvestmentServices(
+                investment["id"], payment_ntb
+            ).continue_investment()
             current_app.logger.info("Continue investment")
             current_app.logger.info(result)
 
@@ -103,7 +105,9 @@ def top_up_va(account_no, amount, payment_ntb, va_type):
             raise UnprocessableEntity(exc.message, exc.original_exception)
         else:
             # continue investment flow!
-            result = LoanRequestServices(loan_request["id"]).process_repayment()
+            result = LoanRequestServices(
+                loan_request["id"], payment_ntb
+            ).process_repayment()
             current_app.logger.info("Receive repayment")
             current_app.logger.info(result)
 

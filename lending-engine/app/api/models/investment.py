@@ -117,6 +117,26 @@ class Investment(BaseBankDocument):
         loan_requests = list(result)[0]
         return loan_requests["lr"][0]
 
+    @staticmethod
+    def get_matched_loans(loan_ids):
+        result = Investment.collection.aggregate(
+            [
+                {
+                    "$addFields": {
+                        "matchedLoans": {
+                            "$filter": {
+                                "input": "$lr",
+                                "as": "loan",
+                                "cond": {"$in": ["$$loan.loanRequest_id", loan_ids]},
+                            }
+                        }
+                    }
+                },
+                {"$match": {"matchedLoans": {"$exists": True, "$ne": []}}},
+            ]
+        )
+        return list(result)
+
     @post_dump
     def custom_dump(self, data):
         total_amount = data["total_amount"]

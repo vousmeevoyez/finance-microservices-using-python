@@ -69,6 +69,7 @@ TRANSFER_TYPES = {
 
 WORKER = {
     "MAX_RETRIES": os.getenv("WORKER_MAX_RETRY") or 5,
+    "TRANSACTION_MAX_RETRIES": None, # retry infinitely
     "HARD_LIMIT": 15,
     "SOFT_LIMIT": 10,
     "ACKS_LATE": True,  # prevent executing task twice

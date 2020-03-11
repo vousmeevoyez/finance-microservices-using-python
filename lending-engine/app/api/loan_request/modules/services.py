@@ -40,7 +40,7 @@ class LoanRequestServicesError(BaseError):
 
 
 class LoanRequestServices:
-    def __init__(self, loan_request_id):
+    def __init__(self, loan_request_id, reference_no=None):
         loan_request = LoanRequest.find_one({"id": ObjectId(loan_request_id)})
         if loan_request is None:
             raise LoanRequestNotFound()
@@ -63,6 +63,8 @@ class LoanRequestServices:
         self.borrower = borrower
         self.profit_wallet = profit_wallet
         self.escrow_wallet = escrow_wallet
+        # add reference if available
+        self.reference_no = reference_no
 
     def _build_receive_repayment_payload(self):
         """ request payload for receiving repayment """
@@ -75,6 +77,7 @@ class LoanRequestServices:
             "destination_type": "REPAYMENT",
             "amount": int(self.loan_request.requested_loan_request),
             "transaction_type": transaction_type,
+            "reference_no": self.reference_no,
             "model": "LoanRequest",
             "model_id": str(self.loan_request.id),
             "status": TRANSACTION_TYPE_TO_STATUS[transaction_type] + "_REQUESTED",
@@ -129,10 +132,14 @@ class LoanRequestServices:
         # adding queue id to loan request status so we know its already
         # scheduled
         queue_id = schedule_transaction(**send_invest_payload)
-        self.loan_request.list_of_status.append(
-            {"queue_id": queue_id, "status": "SEND_FEE_TO_ESCROW_QUEUED"}
+        LoanRequest.collection.update_one(
+            {"_id": self.loan_request.id},
+            {
+                "$push": {
+                    "lst": {"st": "SEND_FEE_TO_ESCROW_QUEUED", "queue_id": queue_id}
+                }
+            },
         )
-        self.loan_request.commit()
 
         return send_invest_payload
 
@@ -164,8 +171,11 @@ class LoanRequestServices:
         """ process repayment """
         # disable repayment virtual account
         VirtualAccountTask().disable_va.apply_async(
-            kwargs={"model_name": "LoanRequest", "model_id":
-                    str(self.loan_request.id), "label": "REPAYMENT"},
+            kwargs={
+                "model_name": "LoanRequest",
+                "model_id": str(self.loan_request.id),
+                "label": "REPAYMENT",
+            },
             queue="virtual_account",
         )
 

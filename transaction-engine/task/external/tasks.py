@@ -2,7 +2,6 @@
     This is Celery Task to help interacting with External API
     in the background
 """
-import random
 from bson import ObjectId
 from pymongo.errors import ConnectionFailure, OperationFailure
 import grpc
@@ -10,37 +9,19 @@ import grpc
 from flask import current_app
 from celery.exceptions import MaxRetriesExceededError
 
-from app.api import celery, sentry
-
 from app.api.models.transaction import Transaction
 
 from app.api.lib.helper import generate_ref_number
 from app.config.worker import RPC
 from app.api.const import WORKER
 
+from task.base import celery, backoff, fast_backoff, BaseTask
+
 from task.external.factories.helper import generate_stub, generate_message
 
 
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
-
-
-class ExternalTask(celery.Task):
+class ExternalTask(BaseTask):
     """Abstract base class for all tasks in my app."""
-
-    abstract = True
-
-    def on_retry(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry at retry."""
-        sentry.captureException(exc)
-        super(ExternalTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry."""
-        sentry.captureException(exc)
-        # end with
-        super(ExternalTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
     """
         Any External API Call via gRPC
@@ -105,14 +86,15 @@ class ExternalTask(celery.Task):
 
     @celery.task(
         bind=True,
-        max_retries=int(WORKER["MAX_RETRIES"]),
+        max_retries=WORKER["TRANSACTION_MAX_RETRIES"],
         task_soft_time_limit=WORKER["SOFT_LIMIT"],
         task_time_limit=WORKER["SOFT_LIMIT"],
-        acks_late=WORKER["ACKS_LATE"],
+        acks_late=WORKER["ACKS_LATE"]
     )
     def apply_external(self, transfer):
-        """ mark successful transfer as completed """
+        """ mark successful transfer as completed or failed """
         transaction_id, status, reference_no, transfer_ref_number = transfer
+
         # start session!
         with current_app.connection.start_session(causal_consistency=True) as session:
             with session.start_transaction():
@@ -141,7 +123,7 @@ class ExternalTask(celery.Task):
                             transaction_id
                         )
                     )
-                    self.retry(countdown=backoff(self.request.retries))
+                    self.retry(countdown=fast_backoff())
                 else:
                     if status == "FAILED":
                         # if the transaction was failed we refund trigger

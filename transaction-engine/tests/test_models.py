@@ -2,7 +2,11 @@
     TEST TRANSACTION MODEL
 """
 
-from app.api.models.transaction import Transaction, PaymentEmbed
+from app.api.models.transaction import (
+    Transaction,
+    PaymentEmbed,
+    ChildTransactionEmbed
+)
 from app.api.models.investor import Investor
 from app.api.models.investment import Investment
 from app.api.models.wallet import Wallet
@@ -351,3 +355,70 @@ def test_adjustment(
 
     transaction.payment = payment
     transaction.commit()
+
+    # use this to correct a transaction !
+    transaction = Transaction(
+        wallet_id=setup_escrow_wallet.id,
+        source_id=setup_escrow_wallet.id,
+        source_type="ESCROW",
+        destination_id=setup_escrow_wallet.id,
+        destination_type="ESCROW",
+        amount=-1000000,
+        transaction_type="DEBIT_ADJUSTMENT",
+    )
+
+    payment = PaymentEmbed()
+    payment.generate_payment_info(transaction)
+
+    transaction.payment = payment
+    transaction.commit()
+
+
+def test_investment_to_escrow_bulk(
+    setup_flask_app, setup_escrow_wallet, setup_profit_wallet
+):
+    """
+        test invest flow from rdl to investment va
+    """
+
+    child_trx = ChildTransactionEmbed(
+        wallet_id=setup_escrow_wallet.id,
+        source_id=setup_escrow_wallet.id,
+        source_type="ESCROW",
+        destination_id=setup_profit_wallet.id,
+        destination_type="PROFIT",
+        amount=-1000,
+        transaction_type="UPFRONT_FEE",
+    )
+
+    child_trx2 = ChildTransactionEmbed(
+        wallet_id=setup_escrow_wallet.id,
+        source_id=setup_escrow_wallet.id,
+        source_type="ESCROW",
+        destination_id=setup_profit_wallet.id,
+        destination_type="PROFIT",
+        amount=-1000,
+        transaction_type="UPFRONT_FEE",
+    )
+    transactions = []
+    transactions.append(child_trx)
+    transactions.append(child_trx2)
+
+    parent_transaction = Transaction(
+        wallet_id=setup_escrow_wallet.id,
+        source_id=setup_escrow_wallet.id,
+        source_type="ESCROW",
+        destination_id=setup_profit_wallet.id,
+        destination_type="PROFIT",
+        amount=-2000,
+        transaction_type="UPFRONT_FEE",
+        transactions=transactions
+    )
+
+    payment = PaymentEmbed()
+    payment.generate_payment_info(parent_transaction)
+
+    parent_transaction.payment = payment
+    parent_transaction.commit()
+
+    assert len(parent_transaction.transactions) == 2

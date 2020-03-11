@@ -1,5 +1,6 @@
 import pytest
 from grpc import RpcError
+from bson import ObjectId
 
 from unittest.mock import Mock, patch
 from app.api.models.investment import Investment
@@ -67,3 +68,29 @@ def test_send_transaction_with_models(mock_post,
     assert result["model"]
     assert result["model_id"]
     assert result["status"]
+
+
+def test_map_bulk_transaction(make_loan_request):
+    loan_request = make_loan_request()
+    loan_request2 = make_loan_request()
+
+    fake_trx_id = ObjectId()
+    transaction_result = {
+        "transaction_ids": [fake_trx_id],
+        "update_records": [{
+            "model": "LoanRequest",
+            "model_id": str(loan_request.id),
+            "status": "SEND_TO_PROFIT_REQUESTED"
+        }, {
+            "model": "LoanRequest",
+            "model_id": str(loan_request2.id),
+            "status": "SEND_TO_PROFIT_REQUESTED"
+        }]
+    }
+    TransactionTask().map_bulk_transaction(transaction_result)
+
+    # make sure transaction id is added
+    loan_requests = list(LoanRequest.collection.find(
+        {"lst.transaction_id": fake_trx_id}
+    ))
+    assert len(loan_requests) == 2

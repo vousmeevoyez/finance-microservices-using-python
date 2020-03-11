@@ -174,6 +174,20 @@ class PaymentEmbed(EmbeddedDocument):
 
 
 @instance.register
+class ChildTransactionEmbed(EmbeddedDocument):
+    """
+        Represent child transaction
+    """
+    wallet_id = ObjectIdField()
+    source_id = ObjectIdField()  # OPTIONAL -> internal identifier can be RDL
+    source_type = StrField()
+    destination_id = ObjectIdField()
+    destination_type = StrField()
+    transaction_type = StrField()
+    amount = DecimalField(default=0)
+
+
+@instance.register
 class Transaction(Document):
     """ Virtual Account ODM """
 
@@ -189,7 +203,7 @@ class Transaction(Document):
     notes = StrField(allow_none=True)  # Payment references
     status = StrField(default="PENDING")
     payment = EmbeddedField(PaymentEmbed)
-    transaction_link_id = ObjectIdField(default=None)  # OPTIONAL -> to link another trx
+    transactions = ListField(EmbeddedField(ChildTransactionEmbed), default=list)
     created_at = DateTimeField(required=True, attribute="ca", default=datetime.utcnow)
     updated_at = DateTimeField(attribute="ua", default=datetime.utcnow)
 

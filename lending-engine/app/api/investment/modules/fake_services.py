@@ -268,13 +268,8 @@ def create_random_investment(investor_id, loan_ids):
                 "loan_request_id": loan_request.id,
                 "disburse_amount": loan_request.disburse_amount,
                 "total_fee": loan_request.service_fee,
-                "fees": [
-                    {
-                        "profit_fee": 28000,
-                        "investor_fee": 12000
-                    }
-                ],
-                "investor_fee": "30"
+                "fees": [{"profit_fee": 28000, "investor_fee": 12000}],
+                "investor_fee": "30",
             }
         )
 
