@@ -10,14 +10,8 @@ from app.api.investor import api
 from app.api.lib.core.routes import Routes
 from app.api.models.investor import Investor
 from app.api.serializer import WithdrawSchema
-from app.api.investor.modules.services import (
-    approve_investor,
-    withdraw,
-    sync_balance
-)
-from app.api.investor.modules.fake_services import (
-    create_random_investor
-)
+from app.api.investor.modules.services import approve_investor, withdraw, sync_balance
+from app.api.investor.modules.fake_services import create_random_investor
 
 
 @api.route("/random")

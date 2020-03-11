@@ -40,9 +40,7 @@ def sync_balance(investor_id):
     """
         sync RDL balance internal and BNI Rdl
     """
-    result = InvestorTask().sync_rdl.apply_async(
-        args=[investor_id], queue="investor"
-    )
+    result = InvestorTask().sync_rdl.apply_async(args=[investor_id], queue="investor")
 
     # if differences more than zero
     # it means we have less than we suppose so we need to add balance

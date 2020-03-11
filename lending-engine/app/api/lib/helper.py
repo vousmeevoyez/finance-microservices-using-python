@@ -142,10 +142,7 @@ def send_notif(
 def push_refresh_token(user_id):
     url = INVESTOR_BE["BASE_URL"] + INVESTOR_BE["ENDPOINTS"]["REFRESH_TOKEN"]
     try:
-        payload = {
-            "uid": str(user_id),
-            "socketioKey": INVESTOR_BE["SOCKETIO_KEY"]
-        }
+        payload = {"uid": str(user_id), "socketioKey": INVESTOR_BE["SOCKETIO_KEY"]}
         r = requests.post(url, payload)
         r.raise_for_status()
     except requests.exceptions.HTTPError:

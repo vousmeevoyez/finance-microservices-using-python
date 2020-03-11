@@ -1,38 +1,27 @@
+"""
+    Utility Task modules
+"""
 import requests
-import random
 from bson import ObjectId
 
 from flask import current_app
 from celery.exceptions import MaxRetriesExceededError
 
-from app.api import celery, sentry
 from app.api.models.transaction import Transaction
 from app.api.models.base import StatusEmbed
-from app.config.worker import WORKER, HTTP
+
+from app.api.const import WORKER
+from app.config.worker import HTTP
+
+from task.base import celery, fast_backoff, BaseTask
 
 
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
-
-
-class UtilityTask(celery.Task):
-    """Abstract base class for all tasks in my app."""
-
-    def on_retry(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry at retry."""
-        sentry.captureException(exc)
-        super(UtilityTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry."""
-        sentry.captureException(exc)
-        # end with
-        super(UtilityTask, self).on_failure(exc, task_id, args, kwargs, einfo)
+class UtilityTask(BaseTask):
+    """ all task related to utility like sending notif to lending engine """
 
     @celery.task(
         bind=True,
-        max_retries=int(WORKER["MAX_RETRIES"]),
+        max_retries=WORKER["TRANSACTION_MAX_RETRIES"],
         task_soft_time_limit=WORKER["SOFT_LIMIT"],
         task_time_limit=WORKER["SOFT_LIMIT"],
         acks_late=WORKER["ACKS_LATE"],
@@ -58,7 +47,7 @@ class UtilityTask(celery.Task):
             r.raise_for_status()
         except requests.exceptions.HTTPError as exc:
             try:
-                self.retry(countdown=backoff(self.request.retries))
+                self.retry(countdown=fast_backoff())
             except MaxRetriesExceededError:
                 current_app.logger.info(exc)
         else:

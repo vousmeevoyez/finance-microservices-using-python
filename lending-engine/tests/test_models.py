@@ -81,10 +81,10 @@ def test_investment_get_status_by_transaction(
 ):
     investment, loan_request, transactions = setup_investment_with_transaction
 
-    investment = Investment().get_by_transaction(
+    investment = Investment().get_by_transactions(
         transactions[0].id
     )
-    assert investment
+    assert investment[0]
 
 
 def test_investment_get_by_loan_request(
@@ -103,10 +103,10 @@ def test_loan_request_get_status_by_transaction(
 ):
     investment, loan_request, transactions = setup_investment_with_transaction
 
-    loan_request = LoanRequest().get_by_transaction(
+    loan_request = LoanRequest().get_by_transactions(
         transactions[3].id
     )
-    assert loan_request
+    assert loan_request[0]
 
 
 def test_loan_request_with_product(

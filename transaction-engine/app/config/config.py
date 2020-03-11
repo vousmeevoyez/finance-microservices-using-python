@@ -110,4 +110,8 @@ class ProductionConfig(Config):
     SENTRY_CONFIG["dsn"] = os.environ.get("SENTRY_DSN")
 
 
-CONFIG_BY_NAME = dict(dev=DevelopmentConfig, test=TestingConfig, prod=ProductionConfig)
+CONFIG_BY_NAME = dict(
+    dev=DevelopmentConfig,
+    test=TestingConfig,
+    prod=ProductionConfig
+)

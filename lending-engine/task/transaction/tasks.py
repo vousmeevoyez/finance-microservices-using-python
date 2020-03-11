@@ -1,8 +1,14 @@
+"""
+    Transaction Task Modules
+"""
 import requests
-import random
 from bson import ObjectId
+from itertools import groupby
+
 
 import pymongo
+from pymongo import UpdateOne
+
 from flask import current_app
 from celery.exceptions import (
     MaxRetriesExceededError
@@ -141,8 +147,8 @@ class TransactionTask(BaseTask):
                     )
                     session.commit_transaction()
                 except (
-                    pymongo.errors.ConnectionFailure,
-                    pymongo.errors.OperationFailure,
+                        pymongo.errors.ConnectionFailure,
+                        pymongo.errors.OperationFailure,
                 ) as exc:
                     current_app.logger.info("retry map transaction {} ... ".format(
                         transaction_id
@@ -161,30 +167,34 @@ class TransactionTask(BaseTask):
         transaction_ids = transaction_result["transaction_ids"]
         update_records = transaction_result["update_records"]
 
-        for record in update_records:
-            # convert string into actual model object
-            object_ = str_to_class(record["model"])
+        for transaction_id in transaction_ids:
+            # first group update records by its own model / collection
+            groupped_models = groupby(update_records, lambda x: x.pop("model"))
+            for model in groupped_models:
+                model_name = model[0]
+                # populate operation here
+                operations = []
+                for data in model[1]:
+                    operation = UpdateOne(
+                        {"_id": ObjectId(data["model_id"])},
+                        {"$push": {
+                            "lst": {
+                                "transaction_id":
+                                ObjectId(transaction_id),
+                                "st": data["status"]
+                            }
+                        }}
+                    )
+                    operations.append(operation)
+                # end for
+                # apply all bulk here
+                is_updated = False
+                actual_model = str_to_class(model_name)
+                while is_updated is False:
+                    actual_model = str_to_class(model_name)
+                    result = actual_model.collection.bulk_write(operations)
 
-            with current_app.connection.start_session(causal_consistency=True) as session:
-                with session.start_transaction():
-                    try:
-                        object_.collection.update_one(
-                            {"_id": ObjectId(record["model_id"])},
-                            {"$push": {
-                                "lst": {
-                                    "transaction_id":
-                                    ObjectId(transaction_ids[0]),
-                                    "st": record["status"]
-                                }
-                            }},
-                            session=session
-                        )
-                        session.commit_transaction()
-                    except (
-                        pymongo.errors.ConnectionFailure,
-                        pymongo.errors.OperationFailure,
-                    ) as exc:
-                        current_app.logger.info("retry map bulk transaction {} ... ".format(
-                            transaction_ids[0]
-                        ))
-                        self.retry(exc=exc)
+                    if result.modified_count != 0:
+                        is_updated = True
+            # end for
+        # end for

@@ -3,7 +3,7 @@
     _______________
     Handle logic to models or external party API
 """
-from collections import Counter
+from itertools import groupby
 from bson import ObjectId
 
 from app.api.models.transaction import Transaction
@@ -29,7 +29,8 @@ def single_transaction(
         amount,
         transaction_type,
         reference_no=None,
-        notes=None
+        notes=None,
+        child_transactions=None
 ):
 
     # first need to make sure the wallet balance is enough for this transaction
@@ -53,39 +54,43 @@ def single_transaction(
         transaction_type=transaction_type,
         reference_no=reference_no,
         notes=notes,
+        child_transactions=child_transactions
     )
     return trx
 
 
-def aggregate_by_destination_id(transactions):
-    """ aggregate transactions by its destination so we know how much amount we
-    should bulk transfer to destination """
-    counter = Counter()
-    for trx in transactions:
-        counter[
-            trx["source_id"],
-            trx["source_type"],
-            trx["destination_id"],
-            trx["destination_type"],
-            trx["transaction_type"],
-            trx["wallet_id"],
-        ] += int(trx["amount"])
+def aggregate_by_destination_id(transactions, group_key="destination_id"):
+    """ aggregate transactions by its destination so we know how much amount we should bulk transfer to destination """
+    # first group transaction by its destination id
+    groupped = groupby(transactions, lambda x: x.pop(group_key))
+    result = []
+    for item in groupped:
+        # second initialize counter to count items
+        groupped_sum = 0
+        child_transactions = []
+        destination_id = item[0]
+        parent = {}
 
-    # after we got the aggregated result we revert back the result into the
-    # original state
-    dict_count = dict(counter)
-    result = [
-        {
-            "source_id": k[0],
-            "source_type": k[1],
-            "destination_id": k[2],
-            "destination_type": k[3],
-            "transaction_type": k[4],
-            "wallet_id": k[5],
-            "amount": v,
-        }
-        for k, v in dict_count.items()
-    ]
+        for transaction in item[1]:
+            # set all infromation to transaction info
+            parent["reference_no"] = transaction.get("reference_no", None)
+            parent["transaction_type"] = transaction["transaction_type"]
+            parent["source_id"] = transaction["source_id"]
+            parent["source_type"] = transaction["source_type"]
+            parent["destination_id"] = destination_id
+            parent["destination_type"] = \
+                transaction["destination_type"]
+            parent["wallet_id"] = \
+                transaction["wallet_id"]
+            # set missing destination id
+            transaction["destination_id"] = destination_id
+            groupped_sum += int(transaction["amount"])
+            child_transactions.append(transaction)
+        # end for
+        parent["child_transactions"] = child_transactions
+        parent["amount"] = groupped_sum
+        result.append(parent)
+    # end for
     return result
 
 
@@ -118,8 +123,8 @@ def refund(transaction_id):
     # need to check if this transaction linked together or not
     refunds = []
     refunds.append(transaction.id)
-    if transaction.transaction_link_id is not None:
-        refunds.append(transaction.transaction_link_id)
+    if transaction.transactions != []:
+        refunds += transaction.transactions
 
     refund_result = []
     for item in refunds:

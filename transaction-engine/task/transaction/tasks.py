@@ -5,14 +5,13 @@ import random
 from bson import ObjectId
 from bson.decimal128 import Decimal128
 
-from datetime import datetime
-
 import pymongo
 from pymongo.read_concern import ReadConcern
 from pymongo.write_concern import WriteConcern
 
+from celery.exceptions import MaxRetriesExceededError
+
 from flask import current_app
-from app.api import sentry, celery
 
 from app.api.models.transaction import Transaction, PaymentEmbed
 from app.api.models.wallet import Wallet
@@ -20,33 +19,22 @@ from app.api.models.wallet import Wallet
 # const
 from app.api.const import WORKER
 
-
-def backoff(attempts):
-    """ prevent hammering service with thousand retry"""
-    return random.uniform(2, 4) ** attempts
+from task.base import celery, fast_backoff, BaseTask
 
 
-class TransactionTask(celery.Task):
+class InsufficientBalance(Exception):
+    """ raised when insufficient balance """
+
+
+class TransactionTask(BaseTask):
     """Abstract base class for all tasks in my app."""
-
-    abstract = True
-
-    def on_retry(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry at retry."""
-        sentry.captureException(exc)
-        super(TransactionTask, self).on_retry(exc, task_id, args, kwargs, einfo)
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Log the exceptions to sentry."""
-        sentry.captureException(exc)
-        super(TransactionTask, self).on_failure(exc, task_id, args, kwargs, einfo)
 
     @celery.task(
         bind=True,
-        max_retries=int(WORKER["MAX_RETRIES"]),
+        max_retries=WORKER["TRANSACTION_MAX_RETRIES"],
         task_soft_time_limit=WORKER["SOFT_LIMIT"],
         task_time_limit=WORKER["SOFT_LIMIT"],
-        acks_late=WORKER["ACKS_LATE"],
+        acks_late=WORKER["ACKS_LATE"]
     )
     def apply(self, transaction_id):
         """ background to really apply the transaction to completed and deduct
@@ -91,8 +79,7 @@ class TransactionTask(celery.Task):
                     after_balance = wallet["balance"].to_decimal() + \
                         transaction["amount"].to_decimal()
                     if after_balance < 0:
-                        session.abort_transaction()
-                        self.retry()
+                        raise InsufficientBalance
 
                     Transaction.collection.find_one_and_update(
                         {"_id": ObjectId(transaction_id)},
@@ -112,10 +99,23 @@ class TransactionTask(celery.Task):
                         pymongo.errors.ConnectionFailure,
                         pymongo.errors.OperationFailure,
                         pymongo.errors.InvalidOperation,
+                        InsufficientBalance
                 ) as exc:
                     current_app.logger.info("retry.{}".format(transaction_id))
-                    session.abort_transaction()
-                    self.retry(
-                        countdown=1,
-                        exc=exc
-                    )
+                    try:
+                        self.retry(
+                            exc=exc,
+                            countdown=fast_backoff()
+                        )
+                    except MaxRetriesExceededError:
+                        # if transaction still can be applied, we mark it as
+                        # failed
+                        Transaction.collection.find_one_and_update(
+                            {"_id": ObjectId(transaction_id)},
+                            {
+                                "$set": {
+                                    "status": "FAILED"
+                                }
+                            },
+                            session=session
+                        )

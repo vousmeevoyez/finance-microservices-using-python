@@ -33,6 +33,20 @@ def create_random_user():
         "msidn": "08" + faker.msisdn()[0:10],
         "otp_status": "VERIFIED",
         "is_email_verified": "VERIFIED",
+        "permissions": [
+            "list_loans",
+            "approve_loans",
+            "fetch_loan",
+            "list_approved_loans",
+            "invest",
+            "view_account_information",
+            "view_rdl_balance",
+            "manage_account",
+            "rdl_withdraw",
+            "list_loan_history",
+            "manage_users",
+            "superadmin",
+        ],
     }
     user = User(**data)
     user.commit()
@@ -112,6 +126,10 @@ def create_random_investor():
     investor = Investor(**data)
     investor.commit()
 
+    # add investor id
+    user.investor_id = investor.id
+    user.commit()
+
     rdl_data = {
         "investor_id": investor.id,
         "address_kecamatan": investor["address"]["kecamatan"],
@@ -119,7 +137,7 @@ def create_random_investor():
         "address_rt_rw_perum": "113/123",
         "address_street": "1312313",
         "birth_date": "15061971",
-        "birth_place": "131123123",
+        "birth_place": "Jakarta",
         "branch_opening": "0259",
         "country": "ID",
         "education": "04",
@@ -137,7 +155,7 @@ def create_random_investor():
         "job_code": "01",
         "last_name": investor["last_name"],
         "middle_name": investor["middle_name"],
-        "mobile_phone": investor["mobile_phone"],
+        "mobile_phone": investor["mobile_phone"][:8],
         "mobile_phone_ext": "0853",
         "monthly_income": "8000000",
         "mother_maiden_name": "asadsdasd",

@@ -15,7 +15,7 @@ from app.api.callback.factories.products import (
     DebitRefundCallback,
     CreditRefundCallback,
     DebitAdjustmentCallback,
-    CreditAdjustmentCallback
+    CreditAdjustmentCallback,
 )
 
 

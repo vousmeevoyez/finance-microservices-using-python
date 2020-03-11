@@ -8,7 +8,7 @@ from umongo.fields import (
     StrField,
     DateTimeField,
     ObjectIdField,
-    ListField
+    ListField,
 )
 from app.api import instance
 from app.api.models.base import BaseDocument
