@@ -30,9 +30,8 @@ from app.api.batch.modules.services import (
     convert_start_end_to_datetime
 )
 from app.api.report.modules.services import (
-    create_afpi_report_entry,
-    generate_afpi_report,
-    upload_file_via_ftp,
+    DateTimeReportServices,
+    IdReportServices,
     ReportServicesError
 )
 
@@ -626,18 +625,21 @@ class SchedulerTask(BaseTask):
     def generate_afpi_report(self):
         """ generate afpi report every 18.00 WIB """
         try:
-            regulation_report = create_afpi_report_entry()
+            # populate all loans here
+            services = DateTimeReportServices(is_today=True)
+            loans, regulation_report_id = services.create_or_update_loans()
         except ReportServicesError:
             self.retry()
         else:
-            zip_name = generate_afpi_report(regulation_report.id)
+            current_app.logger.info(
+                "No of loans reported: {}".format(len(loans))
+            )
+            zip_name = services.generate_afpi_report()
             current_app.logger.info(
                 "Generating AFPI Report: {} with file {}".format(
-                    str(regulation_report.id), zip_name
+                    str(regulation_report_id), zip_name
                 )
             )
-            # return zip name so later it can be chained using celery
-            return zip_name, str(regulation_report.id)
 
     @celery.task(
         bind=True,
@@ -646,9 +648,12 @@ class SchedulerTask(BaseTask):
         task_time_limit=WORKER["SOFT_LIMIT"],
         acks_late=WORKER["ACKS_LATE"],
     )
-    def send_afpi_report(self, generate_afpi_report_response):
+    def send_afpi_report(self):
         """ read a file and send afpi report every 00.00 WIB through SFTP """
-        zip_name, regulation_report_id = generate_afpi_report_response
+        # we use is_today apparently because 00.00 WIB is equal to 17.00 UTC so
+        # it's not different day
+        services = DateTimeReportServices(is_today=True)
+        zip_name = services.generate_afpi_report()
 
         current_app.logger.info(
             "begin upload AFPI Report: {} ".format(
@@ -659,13 +664,9 @@ class SchedulerTask(BaseTask):
         with open(zip_name, "rb") as zf:
             # open the actual file and convert into file like object
             try:
-                upload_file_via_ftp(io.BytesIO(zf.read()), zip_name)
+                services.upload_file_via_ftp(io.BytesIO(zf.read()), zip_name)
             except ReportServicesError:
                 self.retry()
-
-        regulation_report = RegulationReport.find_one({"id": ObjectId(regulation_report_id)})
-        regulation_report.list_of_status.append({"status": "SENT"})
-        regulation_report.commit()
 
         current_app.logger.info(
             "upload AFPI Report: {} completed".format(

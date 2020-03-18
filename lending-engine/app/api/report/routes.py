@@ -10,10 +10,10 @@ from flask import send_file, request
 from app.api.report import api
 from app.api.lib.core.routes import Routes
 from app.api.lib.utils import allowed_file
+
 from app.api.report.modules.services import (
-    create_afpi_report_entry,
-    generate_afpi_report,
-    upload_file_via_ftp,
+    IdReportServices,
+    DateTimeReportServices,
     ReportServicesError,
 )
 
@@ -24,29 +24,37 @@ class AfpiDownloadRoutes(Resource):
         download file from afpi
     """
 
-    def get(self, regulation_report_id=None):
+    def get(self, regulation_report_id):
         try:
-            zip_name = generate_afpi_report(regulation_report_id)
+            zip_name = IdReportServices(
+                regulation_report_id
+            ).generate_afpi_report()
         except ReportServicesError:
             return {"status": "DOWNLOAD_FAILED"}, 422
         else:
             return send_file(
-                "../../{}".format(zip_name), as_attachment=True, cache_timeout=0
+                "../../{}".format(zip_name),
+                as_attachment=True,
+                cache_timeout=0
             )
 
 
-@api.route("/afpi/upload")
+@api.route("/afpi/upload/<string:regulation_report_id>")
 class AfpiUploadRoutes(Resource):
     """
         for manual upload to afpi server
     """
 
-    def post(self):
+    def post(self, regulation_report_id):
         file_ = request.files["file"]
 
         if file_ and allowed_file(file_.filename):
             try:
-                upload_file_via_ftp(io.BytesIO(file_.read()), file_.filename)
+                IdReportServices(
+                    regulation_report_id
+                ).upload_file_via_ftp(
+                    io.BytesIO(file_.read()), file_.filename
+                )
             except ReportServicesError:
                 return {"status": "UPLOAD_FAILED"}, 422
             else:
@@ -59,7 +67,9 @@ class AfpiGenerateRoutes(Resource):
 
     def post(self):
         try:
-            regulation_report = create_afpi_report_entry()
+            loans, regulation_report_id = DateTimeReportServices(
+                is_today=True
+            ).create_or_update_loans()
         except ReportServicesError:
             return {"status": "CREATE_FAILED"}, 422
-        return {"id": str(regulation_report.id)}
+        return {"id": regulation_report_id}

@@ -12,8 +12,6 @@ from celery import signature
 TIMEZONE = pytz.timezone("Asia/Jakarta")
 local_now = TIMEZONE.localize(datetime.utcnow())
 tomorrow_morning = local_now.replace(hour=0, minute=0, second=1) + timedelta(days=1)
-# for testing purpose we mark it 2 minutes
-tomorrow_morning_dev = local_now + timedelta(minutes=15)
 
 
 class Config:
@@ -125,20 +123,17 @@ class DevelopmentConfig(Config):
             "schedule": crontab(),
             "options": {"queue": "scheduler"},
         },
-        # for dev purpose we send every 5 minutes
+        # generate AFPI Report every 18.00
         "generate-afpi-report": {
             "task": "task.scheduler.tasks.generate_afpi_report",
-            "schedule": crontab(minute="*/60"),
-            "options": {
-                "queue": "scheduler",
-                "link": signature(
-                    "task.scheduler.tasks.send_afpi_report",
-                    args=(),
-                    kwargs={},
-                    queue="scheduler",
-                    eta=tomorrow_morning_dev,
-                ),
-            },
+            "schedule": crontab(hour="18", minute="0"),
+            "options": {"queue": "scheduler"}
+        },
+        # send AFPI Report every 00.00
+        "send-afpi-report": {
+            "task": "task.scheduler.tasks.send_afpi_report",
+            "schedule": crontab(hour="0", minute="0"),
+            "options": {"queue": "scheduler"}
         },
         # for dev purpose we send every 5 minutes
         "generate-ojk-report": {
@@ -238,20 +233,17 @@ class ProductionConfig(Config):
             "schedule": crontab(),
             "options": {"queue": "scheduler"},
         },
-        # generate AFPI Report every 18.00 and upload it next morning
+        # generate AFPI Report every 18.00
         "generate-afpi-report": {
             "task": "task.scheduler.tasks.generate_afpi_report",
             "schedule": crontab(hour="18", minute="0"),
-            "options": {
-                "queue": "scheduler",
-                "link": signature(
-                    "task.scheduler.tasks.send_afpi_report",
-                    args=(),
-                    kwargs={},
-                    queue="scheduler",
-                    eta=tomorrow_morning,
-                ),
-            },
+            "options": {"queue": "scheduler"}
+        },
+        # send AFPI Report every 00.00
+        "send-afpi-report": {
+            "task": "task.scheduler.tasks.send_afpi_report",
+            "schedule": crontab(hour="0", minute="0"),
+            "options": {"queue": "scheduler"}
         },
         # we trigger generate ojk report every 1 on each month
         "generate-ojk-report": {

@@ -1,13 +1,12 @@
+""" Test Report Modules """
 from datetime import datetime
-
-import random
 import pytest
+from unittest.mock import patch
+
 from freezegun import freeze_time
 
 from app.api.report.modules.services import (
-    fetch_all_loans,
-    create_afpi_report_entry,
-    generate_afpi_report,
+    DateTimeReportServices,
     ReportServicesError
 )
 from app.api.models.report import AfpiReport
@@ -30,7 +29,9 @@ def test_fetch_all_loans_outstanding_only(
             {"status": "SEND_TO_MODANAKU_COMPLETED"}
         ]
     )
-    results = fetch_all_loans(setup_regulation_report.id, start_time, end_time)
+    results = DateTimeReportServices.fetch_all_loans(
+        setup_regulation_report.id, start_time, end_time
+    )
     assert results
 
 
@@ -49,7 +50,7 @@ def test_fetch_all_loans_paid_only(make_loan_request, setup_regulation_report):
         ],
         payment_date=now.date()
     )
-    results = fetch_all_loans(setup_regulation_report.id, start_time, end_time)
+    results = DateTimeReportServices.fetch_all_loans(setup_regulation_report.id, start_time, end_time)
     assert results
 
 
@@ -68,7 +69,7 @@ def test_fetch_all_loans_writeoff_only(make_loan_request, setup_regulation_repor
         ],
         ua=now
     )
-    results = fetch_all_loans(setup_regulation_report.id, start_time, end_time)
+    results = DateTimeReportServices.fetch_all_loans(setup_regulation_report.id, start_time, end_time)
     assert results
 
 
@@ -88,30 +89,70 @@ def test_fetch_all_loans(make_loan_request, setup_regulation_report):
         ua=now
     )
 
-    results = fetch_all_loans(setup_regulation_report.id, start_time, end_time)
+    results = DateTimeReportServices.fetch_all_loans(setup_regulation_report.id, start_time, end_time)
     assert results
 
-def test_create_afpi_report_entry(setup_afpi_report):
-    create_afpi_report_entry()
-    reports = list(AfpiReport.find())
-    assert len(reports)
+
+def test_create_or_increment_regulation_report():
+    """ test create new regulation report """
+    regulation_report = DateTimeReportServices(
+        is_today=False
+    ).create_or_increment_regulation_report()
+    assert regulation_report.version == 1
 
 
-def test_create_afpi_report_entry_already_exist(setup_afpi_report):
-    create_afpi_report_entry()
-    reports = list(AfpiReport.find())
-    assert len(reports)
+def test_create_or_increment_regulation_report_existing():
+    """ test increment existing regulation report """
+    regulation_report = DateTimeReportServices(
+        is_today=True
+    ).create_or_increment_regulation_report()
+    assert regulation_report.version == 2
 
 
-def test_create_afpi_report_entry_empty():
+def test_create_or_update_loans(make_loan_request):
+    """ test create or update loans """
+    now = datetime.utcnow()
+
+    make_loan_request(
+        status="WRITEOFF",
+        payment_state_status="MACET",
+        list_of_status=[
+            {"status": "SEND_TO_MODANAKU_COMPLETED"}
+        ],
+        ua=now
+    )
+
+    loans, regulation_report_id = DateTimeReportServices(
+        is_today=True
+    ).create_or_update_loans()
+    assert len(loans) >= 1
+
+
+def test_create_or_update_no_loans():
+    """ test create or update but no matching loans """
+    # wipe loans
     LoanRequest.collection.delete_many({})
+
     with pytest.raises(ReportServicesError):
-        create_afpi_report_entry()
+        DateTimeReportServices(
+            is_today=False
+        ).create_or_update_loans()
+
+def test_generate_afpi_report():
+    """ test generate actual file for afpi report """
+    zip_name = DateTimeReportServices(
+        is_today=True
+    ).generate_afpi_report()
+    assert zip_name
+    pytest.zip_name = zip_name
 
 
-@freeze_time("2019-12-19")
-def test_generate_afpi_report(setup_afpi_report, setup_regulation_report):
-    random_ver = random.randint(1, 99)
-    csv_output = generate_afpi_report(setup_regulation_report.id,
-                                      str(random_ver))
-    assert csv_output
+@patch("pysftp.Connection")
+def test_upload_file_via_ftp(mock_sftp):
+    """ test generate actual file for afpi report """
+    filename = pytest.zip_name
+
+    with open(filename, "rb") as file_:
+        DateTimeReportServices(
+            is_today=True
+        ).upload_file_via_ftp(file_, filename)

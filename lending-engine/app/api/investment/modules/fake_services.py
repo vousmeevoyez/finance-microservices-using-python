@@ -44,7 +44,9 @@ def create_random_borrower_user():
 def create_random_borrower():
     user = create_random_borrower_user()
     borrower_code = random.randint(11111111, 9999999999)
-    npwp_no = random.randint(1111111111111111, 9999999999999999)
+    npwp_no = random.randint(111111111111111, 999999999999999)
+    ktp = random.randint(1111111111111111, 9999999999999999)
+
     data = {
         "domicile_country": "Indonesia",
         "email": user.email,
@@ -74,7 +76,7 @@ def create_random_borrower():
             "residency_status_validation": False,
             "zip_code_validation": True,
         },
-        "ktp": {"no": "1471120607930002", "validation": True},
+        "ktp": {"no": str(ktp), "validation": True},
         "npwp": {"no": str(npwp_no), "validation": True},
         "work_info": [
             {
