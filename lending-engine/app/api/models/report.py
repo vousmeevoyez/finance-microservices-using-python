@@ -33,6 +33,7 @@ class RegulationReport(BaseDocument):
     file_url = StrField(attribute="fu")
     file_name = StrField(attribute="fn")
     file_path = StrField(attribute="fp")
+    version = IntField(attribute="v", default=1)
     list_of_status = ListField(
         EmbeddedField(StatusEmbed), attribute="lst", default=list
     )

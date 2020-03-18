@@ -1,12 +1,16 @@
 """
     Serializer & Deserialize
 """
+from datetime import datetime, timedelta
 import pytz
-from datetime import datetime
-from marshmallow import fields, ValidationError, validates, validates_schema, post_load
+from marshmallow import fields, ValidationError, validates, post_load
+from flask import current_app
+
 from app.api import ma
 from app.api.const import P2P_ID
 from app.config.external.bank import BNI_ECOLLECTION
+
+TIMEZONE = pytz.timezone("Asia/Jakarta")
 
 
 def cannot_be_blank(string):
@@ -19,12 +23,29 @@ def cannot_be_blank(string):
         raise ValidationError("Data cannot be blank")
 
 
-def generate_local_date():
-    timezone = pytz.timezone("Asia/Jakarta")
-    now = datetime.utcnow()
-    local_now = timezone.localize(now)
+def generate_local_date(created_at=None):
+    if created_at is None:
+        # if created at is not supplied we use utcnow
+        created_at = datetime.utcnow()
+    local_now = TIMEZONE.localize(created_at)
     local_date_string = local_now.strftime("%Y%m%d")
     return local_date_string
+
+
+def generate_afpi_version(version):
+    # if version less than < 10 we add zero
+    afpi_version = str(version)
+    if version < 10:
+        afpi_version = "0" + str(version)
+    return afpi_version
+
+
+def generate_afpi_filename(created_at, version):
+    # pattern is
+    # p2p_id + date + SIK + version
+    local_date_string = generate_local_date(created_at)
+    version = generate_afpi_version(version)
+    return P2P_ID + local_date_string + "SIK" + version
 
 
 def is_repayment_or_investment(account_no):

@@ -947,12 +947,20 @@ def make_transaction_queue(setup_schedules, setup_investment_with_transaction):
 
 
 @pytest.fixture(scope="module")
-def setup_regulation_report():
-    regulation_report = RegulationReport(
-        report_type="AFPI",
-    )
-    regulation_report.commit()
-    return regulation_report
+def make_regulation_report():
+    def _make_regulation_report():
+        regulation_report = RegulationReport(
+            report_type="AFPI",
+            ca=datetime.utcnow()
+        )
+        regulation_report.commit()
+        return regulation_report
+    return _make_regulation_report
+
+
+@pytest.fixture(scope="module")
+def setup_regulation_report(make_regulation_report):
+    return make_regulation_report()
 
 
 @pytest.fixture(scope="module")
